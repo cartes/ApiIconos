@@ -26,7 +26,7 @@ class User extends Authenticatable
         'id',
         'nombre',
         'email',
-        'password',
+        'hash',
         'rol',
         'empresaId',
         'empresaNombre',
@@ -38,7 +38,7 @@ class User extends Authenticatable
     protected static function booted()
     {
         static::creating(function ($user) {
-            if (! $user->id) {
+            if (!$user->id) {
                 $user->id = (string) \Illuminate\Support\Str::uuid();
             }
         });
@@ -50,7 +50,7 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $hidden = [
-        'password',
+        'hash',
         'remember_token',
     ];
 
@@ -63,7 +63,12 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
-            'password' => 'hashed',
+            // No usamos 'hashed' aquí porque el hash viene de Google Apps Script (SHA-256)
         ];
+    }
+
+    public function getAuthPassword()
+    {
+        return $this->hash;
     }
 }

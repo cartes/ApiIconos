@@ -1,0 +1,97 @@
+{
+    "cristian.cartes@content360.cl": {
+        "hash": "MX6grk7OFu/WbIWgabBD9YMrzVPYV0NdhalKlmqSJVY=",
+        "nombre": "Cristian Cartes",
+        "rol": "admin",
+        "empresa": null,
+        "fechaCreacion": "2026-01-19T16:31:57.041Z",
+        "activo": true,
+        "empresaId": null,
+        "empresaNombre": null
+    },
+    "constanza.calderon@content360.cl": {
+        "hash": "keL8wv2XpNIeywDG8bz6brvo5zIsRV/JBvYx+SZxJ3A=",
+        "nombre": "Constanza Calderon",
+        "rol": "usuario",
+        "empresaId": "c8789b47-fe25-4ca9-b57b-3cc2981e1317",
+        "empresaNombre": "Provida",
+        "fechaCreacion": "2026-01-28T12:30:17.593Z",
+        "activo": true
+    },
+    "david.caldera@content360.cl": {
+        "hash": "73l8gRjwLftklgfdXT+MdiMEjJwGPVMsyVxe16iYpk8=",
+        "nombre": "David Caldera",
+        "rol": "usuario",
+        "empresaId": "c792c0cd-1d41-4205-8261-7b8454ef4856",
+        "empresaNombre": "Metlife",
+        "fechaCreacion": "2026-01-28T12:41:51.185Z",
+        "activo": true
+    },
+    "carmari.barreto@content360.cl": {
+        "hash": "73l8gRjwLftklgfdXT+MdiMEjJwGPVMsyVxe16iYpk8=",
+        "nombre": "Carmarí Barreto",
+        "rol": "usuario",
+        "empresaId": "c792c0cd-1d41-4205-8261-7b8454ef4856",
+        "empresaNombre": "Metlife",
+        "fechaCreacion": "2026-02-05T20:16:06.673Z",
+        "activo": true
+    },
+    "macarena.collao@content360.cl": {
+        "hash": "73l8gRjwLftklgfdXT+MdiMEjJwGPVMsyVxe16iYpk8=",
+        "nombre": "Macarena Collao",
+        "rol": "admin",
+        "empresaId": null,
+        "empresaNombre": null,
+        "fechaCreacion": "2026-02-06T19:12:17.152Z",
+        "activo": true
+    },
+    "ariel.gonzalez@content360.cl": {
+        "hash": "73l8gRjwLftklgfdXT+MdiMEjJwGPVMsyVxe16iYpk8=",
+        "nombre": "Ariel Gonzalez",
+        "rol": "admin",
+        "empresaId": null,
+        "empresaNombre": null,
+        "fechaCreacion": "2026-02-06T19:13:15.307Z",
+        "activo": true
+    },
+    "tamara.vega@content360.cl": {
+        "hash": "XohImNooBHFR0OVvjcYpJ3NgPQ1qq73WKhHvch0VQtg=",
+        "nombre": "Tamara Vega",
+        "rol": "usuario",
+        "empresaId": "c8789b47-fe25-4ca9-b57b-3cc2981e1317",
+        "empresaNombre": "Provida",
+        "fechaCreacion": "2026-02-19T18:51:39.649Z",
+        "activo": true,
+        "puedeEliminar": false
+    },
+    "gonzalo.astudillo@content360.cl": {
+        "hash": "XohImNooBHFR0OVvjcYpJ3NgPQ1qq73WKhHvch0VQtg=",
+        "nombre": "Gonzalo Astudillo",
+        "rol": "usuario",
+        "empresaId": "c8789b47-fe25-4ca9-b57b-3cc2981e1317",
+        "empresaNombre": "Provida",
+        "fechaCreacion": "2026-02-19T18:52:25.737Z",
+        "activo": true,
+        "puedeEliminar": false
+    },
+    "Catalina.herrera@content360.cl": {
+        "hash": "XohImNooBHFR0OVvjcYpJ3NgPQ1qq73WKhHvch0VQtg=",
+        "nombre": "Catalina Herrera",
+        "rol": "usuario",
+        "empresaId": "c8789b47-fe25-4ca9-b57b-3cc2981e1317",
+        "empresaNombre": "Provida",
+        "fechaCreacion": "2026-02-19T18:53:11.307Z",
+        "activo": true,
+        "puedeEliminar": false
+    },
+    "alex.maulen@content360.cl": {
+        "hash": "XohImNooBHFR0OVvjcYpJ3NgPQ1qq73WKhHvch0VQtg=",
+        "nombre": "Alex Maulen",
+        "rol": "usuario",
+        "empresaId": "c8789b47-fe25-4ca9-b57b-3cc2981e1317",
+        "empresaNombre": "Provida",
+        "fechaCreacion": "2026-02-19T18:54:00.153Z",
+        "activo": true,
+        "puedeEliminar": false
+    }
+}

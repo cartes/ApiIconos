@@ -16,7 +16,7 @@ class ApiLegacyController extends Controller
         $params = $request->all();
         $accion = $params['accion'] ?? null;
 
-        if (! $accion) {
+        if (!$accion) {
             return response()->json(['success' => false, 'error' => 'Accion desconocida']);
         }
 
@@ -26,7 +26,7 @@ class ApiLegacyController extends Controller
                 case 'verificarEstado':
                     return response()->json([
                         'hayAdmin' => User::where('rol', 'admin')->exists(),
-                        'necesitaBootstrap' => ! User::where('rol', 'admin')->exists(),
+                        'necesitaBootstrap' => !User::where('rol', 'admin')->exists(),
                     ]);
 
                 case 'crearPrimerAdmin':
@@ -36,7 +36,7 @@ class ApiLegacyController extends Controller
                     $admin = User::create([
                         'email' => $params['email'],
                         'nombre' => $params['nombre'],
-                        'password' => $params['clave'], // Laravel will hash it via cast
+                        'hash' => Hash::make($params['clave']),
                         'rol' => 'admin',
                         'fechaCreacion' => now(),
                         'activo' => true,
@@ -50,7 +50,7 @@ class ApiLegacyController extends Controller
                 case 'cambiarClave':
                     return $this->cambiarClave($params['email'], $params['clave'], $params['nuevaClave']);
 
-                    // EMPRESAS
+                // EMPRESAS
                 case 'crearEmpresa':
                     return $this->crearEmpresa($params);
 
@@ -60,7 +60,7 @@ class ApiLegacyController extends Controller
                 case 'eliminarEmpresa':
                     return $this->eliminarEmpresa($params);
 
-                    // USUARIOS
+                // USUARIOS
                 case 'crearUsuario':
                     return $this->crearUsuario($params);
 
@@ -73,7 +73,7 @@ class ApiLegacyController extends Controller
                 case 'eliminarUsuario':
                     return $this->eliminarUsuario($params);
 
-                    // CARPETAS
+                // CARPETAS
                 case 'crearCarpeta':
                     return $this->crearCarpeta($params);
 
@@ -86,7 +86,7 @@ class ApiLegacyController extends Controller
                 case 'renombrarCarpeta':
                     return $this->renombrarCarpeta($params);
 
-                    // ICONOS
+                // ICONOS
                 case 'subirIcono':
                     return $this->subirIcono($params);
 
@@ -103,18 +103,31 @@ class ApiLegacyController extends Controller
                     return response()->json(['success' => false, 'error' => 'Accion desconocida']);
             }
         } catch (\Exception $e) {
-            return response()->json(['success' => false, 'error' => 'Error servidor: '.$e->getMessage()]);
+            return response()->json(['success' => false, 'error' => 'Error servidor: ' . $e->getMessage()]);
         }
     }
 
     private function verificarLogin($email, $clave)
     {
         $user = User::where('email', $email)->first();
-        if (! $user) {
+        if (!$user) {
             return response()->json(['success' => false, 'error' => 'Usuario no existe']);
         }
 
-        if (! Hash::check($clave, $user->password)) {
+        // 1. Intentar con Bcrypt (Laravel estándar)
+        $autenticado = Hash::check($clave, $user->hash);
+
+        // 2. Si falla, intentar con el Legacy Hash (SHA-256 base64, usado en App Script)
+        if (!$autenticado) {
+            $legacyHash = base64_encode(hash('sha256', $clave, true));
+            if ($legacyHash === $user->hash) {
+                $autenticado = true;
+                // Opcional: Re-hashear a Bcrypt para actualizar la seguridad
+                // $user->update(['hash' => Hash::make($clave)]);
+            }
+        }
+
+        if (!$autenticado) {
             return response()->json(['success' => false, 'error' => 'Contraseña incorrecta']);
         }
 
@@ -132,16 +145,22 @@ class ApiLegacyController extends Controller
     private function verificarAdmin($email, $clave)
     {
         $user = User::where('email', $email)->first();
-        if (! $user || $user->rol !== 'admin') {
+        if (!$user || $user->rol !== 'admin') {
             return false;
         }
 
-        return Hash::check($clave, $user->password);
+        // Soporte dual para Bcrypt y Legacy SHA-256
+        if (Hash::check($clave, $user->hash)) {
+            return true;
+        }
+
+        $legacyHash = base64_encode(hash('sha256', $clave, true));
+        return $legacyHash === $user->hash;
     }
 
     private function crearEmpresa($params)
     {
-        if (! $this->verificarAdmin($params['email'], $params['clave'])) {
+        if (!$this->verificarAdmin($params['email'], $params['clave'])) {
             return response()->json(['success' => false, 'error' => 'No tienes permisos de administrador']);
         }
 
@@ -159,7 +178,7 @@ class ApiLegacyController extends Controller
 
     private function listarEmpresas($params)
     {
-        if (! $this->verificarAdmin($params['email'], $params['clave'])) {
+        if (!$this->verificarAdmin($params['email'], $params['clave'])) {
             return response()->json(['success' => false, 'error' => 'No tienes permisos de administrador']);
         }
 
@@ -168,7 +187,7 @@ class ApiLegacyController extends Controller
 
     private function eliminarEmpresa($params)
     {
-        if (! $this->verificarAdmin($params['email'], $params['clave'])) {
+        if (!$this->verificarAdmin($params['email'], $params['clave'])) {
             return response()->json(['success' => false, 'error' => 'No tienes permisos de administrador']);
         }
 
@@ -179,7 +198,7 @@ class ApiLegacyController extends Controller
 
     private function crearUsuario($params)
     {
-        if (! $this->verificarAdmin($params['email'], $params['clave'])) {
+        if (!$this->verificarAdmin($params['email'], $params['clave'])) {
             return response()->json(['success' => false, 'error' => 'No tienes permisos de administrador']);
         }
 
@@ -198,7 +217,7 @@ class ApiLegacyController extends Controller
         User::create([
             'nombre' => $params['nuevoNombre'],
             'email' => $params['nuevoEmail'],
-            'password' => $params['nuevaClave'],
+            'hash' => Hash::make($params['nuevaClave']),
             'rol' => ($params['esAdmin'] ?? false) ? 'admin' : 'usuario',
             'empresaId' => $params['empresaId'] ?? null,
             'empresaNombre' => $empresaNombre,
@@ -212,7 +231,7 @@ class ApiLegacyController extends Controller
 
     private function listarUsuarios($params)
     {
-        if (! $this->verificarAdmin($params['email'], $params['clave'])) {
+        if (!$this->verificarAdmin($params['email'], $params['clave'])) {
             return response()->json(['success' => false, 'error' => 'No tienes permisos de administrador']);
         }
 
@@ -232,12 +251,12 @@ class ApiLegacyController extends Controller
 
     private function editarUsuario($params)
     {
-        if (! $this->verificarAdmin($params['email'], $params['clave'])) {
+        if (!$this->verificarAdmin($params['email'], $params['clave'])) {
             return response()->json(['success' => false, 'error' => 'No tienes permisos de administrador']);
         }
 
         $user = User::where('email', $params['targetEmail'])->first();
-        if (! $user) {
+        if (!$user) {
             return response()->json(['success' => false, 'error' => 'Usuario no existe']);
         }
 
@@ -254,7 +273,7 @@ class ApiLegacyController extends Controller
             $user->puedeEliminar = $datos['puedeEliminar'];
         }
         if (isset($datos['nuevaClave']) && strlen($datos['nuevaClave']) >= 8) {
-            $user->password = $datos['nuevaClave'];
+            $user->hash = Hash::make($datos['nuevaClave']);
         }
 
         $user->save();
@@ -264,7 +283,7 @@ class ApiLegacyController extends Controller
 
     private function eliminarUsuario($params)
     {
-        if (! $this->verificarAdmin($params['email'], $params['clave'])) {
+        if (!$this->verificarAdmin($params['email'], $params['clave'])) {
             return response()->json(['success' => false, 'error' => 'No tienes permisos de administrador']);
         }
 
@@ -281,7 +300,7 @@ class ApiLegacyController extends Controller
     {
         $loginRes = $this->verificarLogin($params['email'], $params['clave']);
         $login = $loginRes->getData();
-        if (! $login->success) {
+        if (!$login->success) {
             return $loginRes;
         }
 
@@ -289,7 +308,7 @@ class ApiLegacyController extends Controller
             ? $params['targetEmpresaId']
             : $login->empresaId;
 
-        if (! $contextEmpresaId) {
+        if (!$contextEmpresaId) {
             return response()->json(['success' => false, 'error' => 'No tienes empresa asignada']);
         }
 
@@ -310,7 +329,7 @@ class ApiLegacyController extends Controller
     {
         $loginRes = $this->verificarLogin($params['email'], $params['clave']);
         $login = $loginRes->getData();
-        if (! $login->success) {
+        if (!$login->success) {
             return $loginRes;
         }
 
@@ -331,7 +350,7 @@ class ApiLegacyController extends Controller
     {
         $loginRes = $this->verificarLogin($params['email'], $params['clave']);
         $login = $loginRes->getData();
-        if (! $login->success) {
+        if (!$login->success) {
             return $loginRes;
         }
 
@@ -340,7 +359,7 @@ class ApiLegacyController extends Controller
         }
 
         $carpeta = Carpeta::find($params['idCarpeta']);
-        if (! $carpeta) {
+        if (!$carpeta) {
             return response()->json(['success' => false, 'error' => 'Carpeta no encontrada']);
         }
 
@@ -361,12 +380,12 @@ class ApiLegacyController extends Controller
     {
         $loginRes = $this->verificarLogin($params['email'], $params['clave']);
         $login = $loginRes->getData();
-        if (! $login->success) {
+        if (!$login->success) {
             return $loginRes;
         }
 
         $carpeta = Carpeta::find($params['idCarpeta']);
-        if (! $carpeta) {
+        if (!$carpeta) {
             return response()->json(['success' => false, 'error' => 'Carpeta no encontrada']);
         }
 
@@ -388,7 +407,7 @@ class ApiLegacyController extends Controller
     {
         $loginRes = $this->verificarLogin($params['email'], $params['clave']);
         $login = $loginRes->getData();
-        if (! $login->success) {
+        if (!$login->success) {
             return $loginRes;
         }
 
@@ -412,7 +431,7 @@ class ApiLegacyController extends Controller
     {
         $loginRes = $this->verificarLogin($params['email'], $params['clave']);
         $login = $loginRes->getData();
-        if (! $login->success) {
+        if (!$login->success) {
             return $loginRes;
         }
 
@@ -433,12 +452,12 @@ class ApiLegacyController extends Controller
     {
         $loginRes = $this->verificarLogin($params['email'], $params['clave']);
         $login = $loginRes->getData();
-        if (! $login->success) {
+        if (!$login->success) {
             return $loginRes;
         }
 
         $icono = Icono::find($params['idIcono']);
-        if (! $icono) {
+        if (!$icono) {
             return response()->json(['success' => false, 'error' => 'Icono no encontrado']);
         }
 
@@ -456,7 +475,7 @@ class ApiLegacyController extends Controller
     {
         $loginRes = $this->verificarLogin($params['email'], $params['clave']);
         $login = $loginRes->getData();
-        if (! $login->success) {
+        if (!$login->success) {
             return $loginRes;
         }
 
@@ -465,7 +484,7 @@ class ApiLegacyController extends Controller
         }
 
         $icono = Icono::find($params['idIcono']);
-        if (! $icono) {
+        if (!$icono) {
             return response()->json(['success' => false, 'error' => 'Icono no encontrado']);
         }
 
@@ -481,19 +500,28 @@ class ApiLegacyController extends Controller
     private function cambiarClave($email, $claveActual, $nuevaClave)
     {
         $user = User::where('email', $email)->first();
-        if (! $user) {
+        if (!$user) {
             return response()->json(['success' => false, 'error' => 'Usuario no existe']);
         }
 
-        if (! Hash::check($claveActual, $user->password)) {
+        // Soporte dual para verificar clave actual
+        $autenticado = Hash::check($claveActual, $user->hash);
+        if (!$autenticado) {
+            $legacyHash = base64_encode(hash('sha256', $claveActual, true));
+            if ($legacyHash === $user->hash) {
+                $autenticado = true;
+            }
+        }
+
+        if (!$autenticado) {
             return response()->json(['success' => false, 'error' => 'Contraseña actual incorrecta']);
         }
 
-        if (! $nuevaClave || strlen($nuevaClave) < 8) {
+        if (!$nuevaClave || strlen($nuevaClave) < 8) {
             return response()->json(['success' => false, 'error' => 'La nueva contraseña debe tener al menos 8 caracteres']);
         }
 
-        $user->password = $nuevaClave; // Hashed via cast
+        $user->hash = Hash::make($nuevaClave);
         $user->save();
 
         return response()->json(['success' => true, 'mensaje' => 'Contraseña actualizada correctamente']);
