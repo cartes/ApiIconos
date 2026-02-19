@@ -114,16 +114,19 @@ class ApiLegacyController extends Controller
             return response()->json(['success' => false, 'error' => 'Usuario no existe']);
         }
 
-        // 1. Intentar con Bcrypt (Laravel estándar)
-        $autenticado = Hash::check($clave, $user->hash);
+        $autenticado = false;
 
-        // 2. Si falla, intentar con el Legacy Hash (SHA-256 base64, usado en App Script)
+        // 1. Intentar con Bcrypt (Laravel estándar) solo si el hash es de tipo bcrypt
+        $info = Hash::info($user->hash);
+        if ($info['algoName'] === 'bcrypt') {
+            $autenticado = Hash::check($clave, $user->hash);
+        }
+
+        // 2. Si no es bcrypt o falló la validación anterior, intentar con el Legacy Hash (SHA-256)
         if (!$autenticado) {
             $legacyHash = base64_encode(hash('sha256', $clave, true));
             if ($legacyHash === $user->hash) {
                 $autenticado = true;
-                // Opcional: Re-hashear a Bcrypt para actualizar la seguridad
-                // $user->update(['hash' => Hash::make($clave)]);
             }
         }
 
@@ -497,15 +500,21 @@ class ApiLegacyController extends Controller
         return response()->json(['success' => true]);
     }
 
-    private function cambiarClave($email, $claveActual, $nuevaClave)
+    public function cambiarClave($email, $claveActual, $nuevaClave)
     {
         $user = User::where('email', $email)->first();
         if (!$user) {
             return response()->json(['success' => false, 'error' => 'Usuario no existe']);
         }
 
+        $autenticado = false;
+
         // Soporte dual para verificar clave actual
-        $autenticado = Hash::check($claveActual, $user->hash);
+        $info = Hash::info($user->hash);
+        if ($info['algoName'] === 'bcrypt') {
+            $autenticado = Hash::check($claveActual, $user->hash);
+        }
+
         if (!$autenticado) {
             $legacyHash = base64_encode(hash('sha256', $claveActual, true));
             if ($legacyHash === $user->hash) {
