@@ -18,6 +18,10 @@ class Carpeta extends Model
 
     protected static function booted()
     {
-        static::creating(fn ($model) => $model->id = (string) Str::uuid());
+        static::creating(function ($model) {
+            if (!$model->id) {
+                $model->id = (string) Str::uuid();
+            }
+        });
     }
 }
