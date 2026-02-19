@@ -124,7 +124,7 @@ class LegacyDataSeeder extends Seeder
                 ['email' => $email],
                 [
                     'nombre' => $data['nombre'],
-                    'password' => 'password', // Default password for local testing
+                    'hash' => 'password', // Default password for local testing
                     'rol' => $data['rol'],
                     'empresaId' => $data['empresaId'],
                     'empresaNombre' => $data['empresaNombre'],
