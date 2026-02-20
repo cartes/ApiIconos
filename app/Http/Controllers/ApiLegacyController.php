@@ -153,8 +153,11 @@ class ApiLegacyController extends Controller
         }
 
         // Soporte dual para Bcrypt y Legacy SHA-256
-        if (Hash::check($clave, $user->hash)) {
-            return true;
+        $info = Hash::info($user->hash);
+        if ($info['algoName'] === 'bcrypt') {
+            if (Hash::check($clave, $user->hash)) {
+                return true;
+            }
         }
 
         $legacyHash = base64_encode(hash('sha256', $clave, true));
