@@ -26,7 +26,7 @@ class User extends Authenticatable
         'id',
         'nombre',
         'email',
-        'hash',
+        'password',
         'rol',
         'empresaId',
         'empresaNombre',
@@ -50,7 +50,7 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $hidden = [
-        'hash',
+        'password',
         'remember_token',
     ];
 
@@ -69,6 +69,6 @@ class User extends Authenticatable
 
     public function getAuthPassword()
     {
-        return $this->hash;
+        return $this->password;
     }
 }
