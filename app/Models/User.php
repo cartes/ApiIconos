@@ -71,4 +71,9 @@ class User extends Authenticatable
     {
         return $this->hash;
     }
+
+    public function getRouteKeyName()
+    {
+        return 'email';
+    }
 }
