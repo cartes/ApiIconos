@@ -34,7 +34,7 @@ class SystemController extends Controller
         $admin = User::create([
             'email' => $request->email,
             'nombre' => $request->nombre,
-            'password' => Hash::make($request->clave),
+            'hash' => Hash::make($request->clave),
             'rol' => 'admin',
             'fechaCreacion' => now(),
             'activo' => true,

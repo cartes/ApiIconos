@@ -25,9 +25,9 @@ class AuthController extends Controller
         $autenticado = false;
 
         // 1. Intentar con Bcrypt (Laravel estándar)
-        $info = Hash::info($user->password);
+        $info = Hash::info($user->hash);
         if ($info['algoName'] === 'bcrypt') {
-            $autenticado = Hash::check($request->clave, $user->password);
+            $autenticado = Hash::check($request->clave, $user->hash);
         }
 
         // 2. Si no es bcrypt o falló, intentar con Legacy Hash
@@ -37,11 +37,11 @@ class AuthController extends Controller
             // Sometimes it was hex
             $hashAttempt2 = hash('sha256', $request->clave);
 
-            if ($user->password === $hashAttempt1 || $user->password === $hashAttempt2 || $user->password === $request->clave) {
+            if ($user->hash === $hashAttempt1 || $user->hash === $hashAttempt2 || $user->hash === $request->clave) {
                 $autenticado = true;
 
                 // Optimizacion: Actualizar automáticamente a Bcrypt para el futuro
-                $user->password = Hash::make($request->clave);
+                $user->hash = Hash::make($request->clave);
                 $user->save();
             }
         }
@@ -101,14 +101,14 @@ class AuthController extends Controller
         $user = $request->user();
         $autenticado = false;
 
-        $info = Hash::info($user->password);
+        $info = Hash::info($user->hash);
         if ($info['algoName'] === 'bcrypt') {
-            $autenticado = Hash::check($request->clave, $user->password);
+            $autenticado = Hash::check($request->clave, $user->hash);
         }
 
         if (!$autenticado) {
             $legacyHash = base64_encode(hash('sha256', $request->clave, true));
-            if ($legacyHash === $user->password) {
+            if ($legacyHash === $user->hash) {
                 $autenticado = true;
             }
         }
@@ -117,7 +117,7 @@ class AuthController extends Controller
             return response()->json(['success' => false, 'error' => 'Contraseña actual incorrecta'], 400);
         }
 
-        $user->password = Hash::make($request->nuevaClave);
+        $user->hash = Hash::make($request->nuevaClave);
         $user->save();
 
         return response()->json(['success' => true, 'mensaje' => 'Contraseña actualizada correctamente']);

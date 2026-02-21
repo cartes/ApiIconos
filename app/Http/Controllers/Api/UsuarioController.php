@@ -51,7 +51,7 @@ class UsuarioController extends Controller
         $user = User::create([
             'nombre' => $request->nombre,
             'email' => $request->email,
-            'password' => Hash::make($request->clave),
+            'hash' => Hash::make($request->clave),
             'rol' => $request->rol,
             'empresaId' => $request->empresaId,
             'empresaNombre' => $empresaNombre,
@@ -87,7 +87,7 @@ class UsuarioController extends Controller
         }
 
         if ($request->filled('nuevaClave')) {
-            $usuario->password = Hash::make($request->nuevaClave);
+            $usuario->hash = Hash::make($request->nuevaClave);
         }
 
         $usuario->save();
