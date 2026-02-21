@@ -36,7 +36,7 @@ class UsuarioController extends Controller
             'nombre' => 'required|string',
             'email' => 'required|email|unique:users,email',
             'clave' => 'required|string|min:8',
-            'rol' => ['required', Rule::in(['admin', 'usuario'])],
+            'rol' => ['required', Rule::in(['admin', 'usuario', 'editor'])],
             'empresaId' => 'nullable|exists:empresas,id'
         ]);
 

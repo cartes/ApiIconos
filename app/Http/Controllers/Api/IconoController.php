@@ -16,7 +16,9 @@ class IconoController extends Controller
             ? $request->targetEmpresaId
             : $user->empresaId;
 
-        $iconos = Icono::where('empresaId', $contextEmpresaId)->get();
+        $iconos = Icono::where('empresaId', $contextEmpresaId)
+            ->orderBy('orden')
+            ->get();
 
         return response()->json([
             'success' => true,
@@ -47,9 +49,31 @@ class IconoController extends Controller
             'subidoPor' => $user->email,
             'fechaSubida' => now(),
             'extension' => 'url', // Se coloca genérico
+            'orden' => Icono::where('carpetaId', $request->carpetaId)->max('orden') + 1,
         ]);
 
         return response()->json(['success' => true, 'icono' => $icono], 201);
+    }
+
+    public function reorder(Request $request)
+    {
+        $request->validate([
+            'iconos' => 'required|array',
+            'iconos.*.id' => 'required|exists:iconos,id',
+            'iconos.*.orden' => 'required|integer',
+        ]);
+
+        $user = $request->user();
+
+        if ($user->puedeEliminar === false && $user->rol !== 'admin') {
+            return response()->json(['success' => false, 'error' => 'No tienes permisos para reordenar'], 403);
+        }
+
+        foreach ($request->iconos as $iconoData) {
+            Icono::where('id', $iconoData['id'])->update(['orden' => $iconoData['orden']]);
+        }
+
+        return response()->json(['success' => true, 'mensaje' => 'Orden de iconos actualizado']);
     }
 
     public function update(Request $request, Icono $icono)

@@ -17,7 +17,9 @@ class CarpetaController extends Controller
             ? $request->targetEmpresaId
             : $user->empresaId;
 
-        $carpetas = Carpeta::where('empresaId', $contextEmpresaId)->get();
+        $carpetas = Carpeta::where('empresaId', $contextEmpresaId)
+            ->orderBy('orden')
+            ->get();
 
         return response()->json([
             'success' => true,
@@ -50,9 +52,31 @@ class CarpetaController extends Controller
             'nombre' => $request->nombre,
             'empresaId' => $contextEmpresaId,
             'creadoPor' => $user->email,
+            'orden' => Carpeta::where('empresaId', $contextEmpresaId)->max('orden') + 1,
         ]);
 
         return response()->json(['success' => true, 'carpeta' => $carpeta], 201);
+    }
+
+    public function reorder(Request $request)
+    {
+        $request->validate([
+            'carpetas' => 'required|array',
+            'carpetas.*.id' => 'required|exists:carpetas,id',
+            'carpetas.*.orden' => 'required|integer',
+        ]);
+
+        $user = $request->user();
+
+        if ($user->puedeEliminar === false && $user->rol !== 'admin') {
+            return response()->json(['success' => false, 'error' => 'No tienes permisos para reordenar'], 403);
+        }
+
+        foreach ($request->carpetas as $carpetaData) {
+            Carpeta::where('id', $carpetaData['id'])->update(['orden' => $carpetaData['orden']]);
+        }
+
+        return response()->json(['success' => true, 'mensaje' => 'Orden de carpetas actualizado']);
     }
 
     public function update(Request $request, Carpeta $carpeta)

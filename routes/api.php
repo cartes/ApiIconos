@@ -32,6 +32,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Rutas Compartidas (Administrador y Usuarios)
     // Rutas de Iconos
+    Route::put('iconos/reorder', [IconoController::class, 'reorder']);
     Route::apiResource('iconos', IconoController::class)->only(['index', 'store']);
     Route::put('iconos/{icono}', [IconoController::class, 'update'])
         ->middleware('permission:editar');
@@ -39,5 +40,6 @@ Route::middleware('auth:sanctum')->group(function () {
         ->middleware('permission:eliminar');
 
     // Rutas de Carpetas
+    Route::put('carpetas/reorder', [CarpetaController::class, 'reorder']);
     Route::apiResource('carpetas', CarpetaController::class)->except(['show']);
 });
