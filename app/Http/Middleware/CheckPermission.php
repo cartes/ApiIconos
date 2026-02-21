@@ -30,6 +30,14 @@ class CheckPermission
             ], 403);
         }
 
+        // Si la ruta requiere permiso de "editar", chequeamos el mismo atributo por ahora
+        if ($permission === 'editar' && $user && $user->puedeEliminar === false) {
+            return response()->json([
+                'success' => false,
+                'error' => 'No tienes permiso para editar'
+            ], 403);
+        }
+
         return $next($request);
     }
 }

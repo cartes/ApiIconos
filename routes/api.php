@@ -32,7 +32,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Rutas Compartidas (Administrador y Usuarios)
     // Rutas de Iconos
-    Route::apiResource('iconos', IconoController::class)->only(['index', 'store', 'update']);
+    Route::apiResource('iconos', IconoController::class)->only(['index', 'store']);
+    Route::put('iconos/{icono}', [IconoController::class, 'update'])
+        ->middleware('permission:editar');
     Route::delete('iconos/{icono}', [IconoController::class, 'destroy'])
         ->middleware('permission:eliminar');
 
