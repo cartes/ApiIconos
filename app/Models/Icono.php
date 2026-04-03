@@ -4,10 +4,15 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
+use Stancl\Tenancy\Database\Concerns\BelongsToTenant;
+
 
 class Icono extends Model
 {
+    use BelongsToTenant;
+
     protected $primaryKey = 'id';
+
 
     public $incrementing = false;
 
@@ -23,7 +28,9 @@ class Icono extends Model
         'fechaSubida',
         'etiqueta',
         'orden',
+        'tenant_id',
     ];
+
 
     protected static function booted()
     {

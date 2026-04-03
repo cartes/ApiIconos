@@ -19,7 +19,11 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['*'],
+    'allowed_origins' => [
+        'https://cartes.github.io',
+        'https://aiconico.cl',
+        'https://*.aiconico.cl'
+    ],
 
     'allowed_origins_patterns' => [],
 
