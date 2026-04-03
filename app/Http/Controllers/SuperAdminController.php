@@ -82,6 +82,52 @@ class SuperAdminController extends Controller
     }
 
     /**
+     * Actualiza el nombre y datos de un tenant.
+     */
+    public function updateTenant(Request $request, $id)
+    {
+        $request->validate([
+            'nombre'  => 'sometimes|required|string|max:255',
+        ]);
+
+        $tenant = Tenant::findOrFail($id);
+        $data = is_array($tenant->data) ? $tenant->data : (json_decode($tenant->data, true) ?? []);
+        
+        if ($request->has('nombre')) {
+            $data['nombre'] = $request->nombre;
+        }
+        
+        $tenant->update(['data' => json_encode($data)]);
+
+        return response()->json([
+            'success' => true,
+            'mensaje' => 'Agencia actualizada correctamente',
+            'tenant'  => [
+                'id'      => $tenant->id,
+                'nombre'  => $data['nombre'] ?? null,
+                'dominio' => $tenant->domains->first()?->domain ?? null,
+                'estado'  => $data['estado'] ?? 'activo',
+            ],
+        ]);
+    }
+
+    /**
+     * Elimina un tenant y sus dominios asociados.
+     */
+    public function deleteTenant($id)
+    {
+        $tenant = Tenant::findOrFail($id);
+        
+        // Eliminar dominios asociados
+        $tenant->domains()->delete();
+        
+        // Eliminar el tenant
+        $tenant->delete();
+
+        return response()->json(['success' => true, 'mensaje' => 'Agencia eliminada correctamente']);
+    }
+
+    /**
      * Reactiva un tenant suspendido.
      */
     public function activarTenant($id)
@@ -95,11 +141,11 @@ class SuperAdminController extends Controller
     }
 
     /**
-     * Lista todos los usuarios del sistema (sin filtro de tenant).
+     * Lista todos los usuarios del sistema (sin filtro de tenant, pero excluyendo super-admin).
      */
     public function indexUsuarios()
     {
-        $usuarios = User::withoutGlobalScopes()->get();
+        $usuarios = User::withoutGlobalScopes()->where('rol', '!=', 'super-admin')->get();
         return response()->json($usuarios);
     }
 }

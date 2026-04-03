@@ -13,7 +13,7 @@ class UsuarioController extends Controller
 {
     public function index()
     {
-        $usuarios = User::all()->map(function ($u) {
+        $usuarios = User::where('rol', '!=', 'super-admin')->get()->map(function ($u) {
             return [
                 'email' => $u->email,
                 'nombre' => $u->nombre,
