@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\SystemController;
 use App\Http\Controllers\Api\UsuarioController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\SuperAdminController;
 
 use Stancl\Tenancy\Middleware\InitializeTenancyByRequestData;
 
@@ -54,4 +55,11 @@ Route::middleware([
     // Gestión de Carpetas
     Route::put('carpetas/reorder', [CarpetaController::class, 'reorder']);
     Route::apiResource('carpetas', CarpetaController::class)->except(['show']);
+});
+
+// Rutas para el SUPERADMINISTRADOR
+Route::middleware(['auth:sanctum', 'role:Super-Admin'])->prefix('super-admin')->group(function () {
+    Route::get('/empresas', [SuperAdminController::class, 'indexEmpresas']);
+    Route::get('/usuarios', [SuperAdminController::class, 'indexUsuarios']);
+    Route::post('/empresas/{id}/suspender', [SuperAdminController::class, 'suspenderEmpresa']);
 });
