@@ -22,7 +22,9 @@ return [
     'allowed_origins' => [
         'https://cartes.github.io',
         'https://aiconico.cl',
-        'https://*.aiconico.cl'
+        'https://*.aiconico.cl',
+        'https://*.aiconic.cl',
+        'https://aiconic.cl'
     ],
 
     'allowed_origins_patterns' => [],
