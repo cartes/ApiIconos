@@ -25,6 +25,7 @@ class SuperAdminSeeder extends Seeder
             'hash' => bcrypt('12345678'),
             'rol' => 'super-admin',
             'tenant_id' => '1',
+            'fechaCreacion' => now()
         ]);
 
         setPermissionsTeamId('1');
