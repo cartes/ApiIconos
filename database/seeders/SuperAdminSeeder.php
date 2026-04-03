@@ -20,9 +20,9 @@ class SuperAdminSeeder extends Seeder
         ]);
 
         $user = User::firstOrCreate([
-            'name' => 'Super Admin',
+            'nombre' => 'Super Admin',
             'email' => 'email@email.com',
-            'password' => bcrypt('12345678'),
+            'hash' => bcrypt('12345678'),
             'tenant_id' => '1',
         ]);
 
