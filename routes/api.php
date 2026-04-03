@@ -59,7 +59,9 @@ Route::middleware([
 
 // Rutas para el SUPERADMINISTRADOR
 Route::middleware(['auth:sanctum', 'role:super-admin'])->prefix('super-admin')->group(function () {
-    Route::get('/empresas', [SuperAdminController::class, 'indexEmpresas']);
+    Route::get('/tenants', [SuperAdminController::class, 'indexTenants']);
+    Route::post('/tenants', [SuperAdminController::class, 'storeTenant']);
+    Route::post('/tenants/{id}/suspender', [SuperAdminController::class, 'suspenderTenant']);
+    Route::post('/tenants/{id}/activar', [SuperAdminController::class, 'activarTenant']);
     Route::get('/usuarios', [SuperAdminController::class, 'indexUsuarios']);
-    Route::post('/empresas/{id}/suspender', [SuperAdminController::class, 'suspenderEmpresa']);
 });
