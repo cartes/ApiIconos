@@ -41,6 +41,16 @@ Route::middleware([
     InitializeTenancyByRequestData::class,
 ])->group(function () {
 
+    // Información del Tenant actual
+    Route::get('/tenant-info', function () {
+        $tenant = tenant();
+        return response()->json([
+            'success' => true,
+            'nombre' => $tenant->nombre,
+            'id' => $tenant->id
+        ]);
+    });
+
     // Gestión de Usuarios del Tenant
     Route::middleware('role:admin')->group(function () {
         Route::apiResource('usuarios', UsuarioController::class)->except(['show']);
