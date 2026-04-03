@@ -23,6 +23,7 @@ class SuperAdminSeeder extends Seeder
             'nombre' => 'Super Admin',
             'email' => 'email@email.com',
             'hash' => bcrypt('12345678'),
+            'rol' => 'super-admin',
             'tenant_id' => '1',
         ]);
 
