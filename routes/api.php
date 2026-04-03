@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CarpetaController;
+use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\EmpresaController;
 use App\Http\Controllers\Api\IconoController;
 use App\Http\Controllers\Api\SystemController;
@@ -61,6 +62,10 @@ Route::middleware([
     Route::apiResource('iconos', IconoController::class)->only(['index', 'store']);
     Route::put('iconos/{icono}', [IconoController::class, 'update'])->middleware('permission:editar');
     Route::delete('iconos/{icono}', [IconoController::class, 'destroy'])->middleware('permission:eliminar');
+    Route::post('iconos/{icono}/click', [IconoController::class, 'registerClick']);
+
+    // Dashboard de métricas (admin)
+    Route::get('dashboard', [DashboardController::class, 'index']);
 
     // Gestión de Carpetas
     Route::put('carpetas/reorder', [CarpetaController::class, 'reorder']);

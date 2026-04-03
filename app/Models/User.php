@@ -82,4 +82,9 @@ class User extends Authenticatable
     {
         return 'email';
     }
+
+    public function iconoClicks()
+    {
+        return $this->hasMany(IconoClick::class, 'user_email', 'email');
+    }
 }

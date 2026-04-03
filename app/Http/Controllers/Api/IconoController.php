@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Icono;
+use App\Models\IconoClick;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class IconoController extends Controller
 {
@@ -105,5 +107,22 @@ class IconoController extends Controller
         $icono->delete();
 
         return response()->json(['success' => true, 'mensaje' => 'Icono eliminado']);
+    }
+
+    public function registerClick(Request $request, Icono $icono)
+    {
+        $user = $request->user();
+
+        // Incremento atómico para evitar race conditions
+        DB::table('iconos')->where('id', $icono->id)->increment('clicks');
+
+        // Registrar interacción del usuario para el ranking
+        IconoClick::create([
+            'user_email' => $user->email,
+            'icono_id'   => $icono->id,
+            'tenant_id'  => tenant('id'),
+        ]);
+
+        return response()->json(['success' => true]);
     }
 }
