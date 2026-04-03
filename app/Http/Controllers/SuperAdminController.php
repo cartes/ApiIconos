@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
-use Stancl\Tenancy\Database\Models\Tenant;
+use App\Models\Tenant;
 
 class SuperAdminController extends Controller
 {
