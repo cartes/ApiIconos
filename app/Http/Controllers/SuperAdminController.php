@@ -11,17 +11,19 @@ use App\Models\Tenant;
 class SuperAdminController extends Controller
 {
     /**
-     * Lista todos los tenants con su dominio principal y datos del JSON.
+     * Lista todos los tenants con su dominio principal y datos virtuales.
      */
     public function indexTenants()
     {
         $tenants = Tenant::with('domains')->get()->map(function ($tenant) {
-            $data = is_array($tenant->data) ? $tenant->data : (json_decode($tenant->data, true) ?? []);
             return [
-                'id'       => $tenant->id,
-                'nombre'   => $data['nombre'] ?? null,
-                'dominio'  => $tenant->domains->first()?->domain ?? null,
-                'estado'   => $data['estado'] ?? 'activo',
+                'id'         => $tenant->id,
+                'nombre'     => $tenant->nombre,
+                'dominio'    => $tenant->domains->first()?->domain,
+                'direccion'  => $tenant->direccion,
+                'email'      => $tenant->email,
+                'telefono'   => $tenant->telefono,
+                'estado'     => $tenant->estado ?? 'activo',
                 'created_at' => $tenant->created_at,
             ];
         });
@@ -30,13 +32,16 @@ class SuperAdminController extends Controller
     }
 
     /**
-     * Crea un nuevo tenant con dominio y opcionalmente un admin inicial.
+     * Crea un nuevo tenant con dominio y metadatos.
      */
     public function storeTenant(Request $request)
     {
         $request->validate([
-            'nombre'  => 'required|string|max:255',
-            'dominio' => 'required|string|max:100|unique:domains,domain',
+            'nombre'     => 'required|string|max:255',
+            'dominio'    => 'required|string|max:100|unique:domains,domain',
+            'direccion'  => 'nullable|string|max:255',
+            'email'      => 'nullable|email|max:255',
+            'telefono'   => 'nullable|string|max:20',
         ]);
 
         // Generar un ID legible desde el nombre (slug)
@@ -49,10 +54,15 @@ class SuperAdminController extends Controller
             $id = $base . '-' . $i++;
         }
 
-        $tenant = Tenant::create([
-            'id'   => $id,
-            'data' => json_encode(['nombre' => $request->nombre, 'estado' => 'activo']),
-        ]);
+        // Crear tenant usando atributos virtuales (VirtualColumn trait)
+        $tenant = new Tenant();
+        $tenant->id = $id;
+        $tenant->nombre = $request->nombre;
+        $tenant->direccion = $request->direccion;
+        $tenant->email = $request->email;
+        $tenant->telefono = $request->telefono;
+        $tenant->estado = 'activo';
+        $tenant->save();
 
         $tenant->domains()->create(['domain' => $request->dominio]);
 
@@ -60,53 +70,67 @@ class SuperAdminController extends Controller
             'success' => true,
             'mensaje' => 'Agencia registrada correctamente',
             'tenant'  => [
-                'id'      => $tenant->id,
-                'nombre'  => $request->nombre,
-                'dominio' => $request->dominio,
-                'estado'  => 'activo',
+                'id'         => $tenant->id,
+                'nombre'     => $tenant->nombre,
+                'dominio'    => $request->dominio,
+                'direccion'  => $tenant->direccion,
+                'email'      => $tenant->email,
+                'telefono'   => $tenant->telefono,
+                'estado'     => 'activo',
             ],
         ]);
     }
 
     /**
-     * Suspende un tenant actualizando su campo estado en data JSON.
-     */
-    public function suspenderTenant($id)
-    {
-        $tenant = Tenant::findOrFail($id);
-        $data = is_array($tenant->data) ? $tenant->data : (json_decode($tenant->data, true) ?? []);
-        $data['estado'] = 'suspendido';
-        $tenant->update(['data' => json_encode($data)]);
-
-        return response()->json(['success' => true, 'mensaje' => 'Agencia suspendida correctamente']);
-    }
-
-    /**
-     * Actualiza el nombre y datos de un tenant.
+     * Actualiza el nombre y datos de un tenant, y opcionalmente su dominio.
      */
     public function updateTenant(Request $request, $id)
     {
         $request->validate([
-            'nombre'  => 'sometimes|required|string|max:255',
+            'nombre'    => 'sometimes|required|string|max:255',
+            'direccion' => 'sometimes|nullable|string|max:255',
+            'email'     => 'sometimes|nullable|email|max:255',
+            'telefono'  => 'sometimes|nullable|string|max:20',
+            'dominio'   => 'sometimes|required|string|max:100|unique:domains,domain,' . $id . ',tenant_id',
         ]);
 
         $tenant = Tenant::findOrFail($id);
-        $data = is_array($tenant->data) ? $tenant->data : (json_decode($tenant->data, true) ?? []);
         
+        // Actualizar atributos virtuales directamente
         if ($request->has('nombre')) {
-            $data['nombre'] = $request->nombre;
+            $tenant->nombre = $request->nombre;
+        }
+        if ($request->has('direccion')) {
+            $tenant->direccion = $request->direccion;
+        }
+        if ($request->has('email')) {
+            $tenant->email = $request->email;
+        }
+        if ($request->has('telefono')) {
+            $tenant->telefono = $request->telefono;
         }
         
-        $tenant->update(['data' => json_encode($data)]);
+        $tenant->save();
+
+        // Actualizar dominio si se proporciona
+        if ($request->has('dominio')) {
+            $tenant->domains()->delete();
+            $tenant->domains()->create(['domain' => $request->dominio]);
+        }
+
+        $dominio = $tenant->domains->first()?->domain;
 
         return response()->json([
             'success' => true,
             'mensaje' => 'Agencia actualizada correctamente',
             'tenant'  => [
-                'id'      => $tenant->id,
-                'nombre'  => $data['nombre'] ?? null,
-                'dominio' => $tenant->domains->first()?->domain ?? null,
-                'estado'  => $data['estado'] ?? 'activo',
+                'id'        => $tenant->id,
+                'nombre'    => $tenant->nombre,
+                'dominio'   => $dominio,
+                'direccion' => $tenant->direccion,
+                'email'     => $tenant->email,
+                'telefono'  => $tenant->telefono,
+                'estado'    => $tenant->estado,
             ],
         ]);
     }
@@ -128,14 +152,25 @@ class SuperAdminController extends Controller
     }
 
     /**
+     * Suspende un tenant actualizando su campo estado.
+     */
+    public function suspenderTenant($id)
+    {
+        $tenant = Tenant::findOrFail($id);
+        $tenant->estado = 'suspendido';
+        $tenant->save();
+
+        return response()->json(['success' => true, 'mensaje' => 'Agencia suspendida correctamente']);
+    }
+
+    /**
      * Reactiva un tenant suspendido.
      */
     public function activarTenant($id)
     {
         $tenant = Tenant::findOrFail($id);
-        $data = is_array($tenant->data) ? $tenant->data : (json_decode($tenant->data, true) ?? []);
-        $data['estado'] = 'activo';
-        $tenant->update(['data' => json_encode($data)]);
+        $tenant->estado = 'activo';
+        $tenant->save();
 
         return response()->json(['success' => true, 'mensaje' => 'Agencia activada correctamente']);
     }
