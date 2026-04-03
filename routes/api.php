@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CarpetaController;
+use App\Http\Controllers\Api\PerfilController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\EmpresaController;
 use App\Http\Controllers\Api\IconoController;
@@ -26,6 +27,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/cambiar-clave', [AuthController::class, 'cambiarClave']);
+
+    // Perfil del usuario autenticado
+    Route::put('/perfil', [PerfilController::class, 'actualizarDatos']);
+    Route::put('/perfil/password', [PerfilController::class, 'cambiarPassword']);
+    Route::get('/perfil/sesiones', [PerfilController::class, 'listarSesiones']);
+    Route::delete('/perfil/sesiones', [PerfilController::class, 'revocarOtrasSesiones']);
+    Route::delete('/perfil/sesiones/{tokenId}', [PerfilController::class, 'revocarSesion']);
 
     // Rutas exclusivas para el SUPER ADMINISTRADOR
     Route::middleware('role:admin')->group(function () {
