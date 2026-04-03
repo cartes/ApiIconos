@@ -58,7 +58,7 @@ Route::middleware([
 });
 
 // Rutas para el SUPERADMINISTRADOR
-Route::middleware(['auth:sanctum', 'role:Super-Admin'])->prefix('super-admin')->group(function () {
+Route::middleware(['auth:sanctum', 'role:super-admin'])->prefix('super-admin')->group(function () {
     Route::get('/empresas', [SuperAdminController::class, 'indexEmpresas']);
     Route::get('/usuarios', [SuperAdminController::class, 'indexUsuarios']);
     Route::post('/empresas/{id}/suspender', [SuperAdminController::class, 'suspenderEmpresa']);
