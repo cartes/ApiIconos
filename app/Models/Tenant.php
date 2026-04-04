@@ -8,4 +8,9 @@ use Stancl\Tenancy\Database\Concerns\HasDomains;
 class Tenant extends BaseTenant
 {
     use HasDomains;
+
+    public function suscripcion()
+    {
+        return $this->hasOne(Suscripcion::class, 'tenant_id');
+    }
 }

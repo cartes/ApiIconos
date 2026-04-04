@@ -89,4 +89,14 @@ Route::middleware(['auth:sanctum', 'role:super-admin'])->prefix('super-admin')->
     Route::post('/tenants/{id}/suspender', [SuperAdminController::class, 'suspenderTenant']);
     Route::post('/tenants/{id}/activar', [SuperAdminController::class, 'activarTenant']);
     Route::get('/usuarios', [SuperAdminController::class, 'indexUsuarios']);
+
+    // Planes
+    Route::get('/planes', [SuperAdminController::class, 'indexPlanes']);
+    Route::post('/planes', [SuperAdminController::class, 'storePlan']);
+    Route::put('/planes/{id}', [SuperAdminController::class, 'updatePlan']);
+    Route::delete('/planes/{id}', [SuperAdminController::class, 'deletePlan']);
+
+    // Suscripciones
+    Route::post('/suscripciones', [SuperAdminController::class, 'storeSuscripcion']);
+    Route::put('/suscripciones/{id}', [SuperAdminController::class, 'updateSuscripcion']);
 });

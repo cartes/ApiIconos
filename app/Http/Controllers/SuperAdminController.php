@@ -7,24 +7,40 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 use App\Models\Tenant;
+use App\Models\Plan;
+use App\Models\Suscripcion;
 
 class SuperAdminController extends Controller
 {
     /**
-     * Lista todos los tenants con su dominio principal y datos virtuales.
+     * Lista todos los tenants con su dominio principal, datos virtuales y suscripción activa.
      */
     public function indexTenants()
     {
-        $tenants = Tenant::with('domains')->get()->map(function ($tenant) {
+        $tenants = Tenant::with(['domains', 'suscripcion.plan'])->get()->map(function ($tenant) {
+            $sub = $tenant->suscripcion;
             return [
-                'id'         => $tenant->id,
-                'nombre'     => $tenant->nombre,
-                'dominio'    => $tenant->domains->first()?->domain,
-                'direccion'  => $tenant->direccion,
-                'email'      => $tenant->email,
-                'telefono'   => $tenant->telefono,
-                'estado'     => $tenant->estado ?? 'activo',
-                'created_at' => $tenant->created_at,
+                'id'          => $tenant->id,
+                'nombre'      => $tenant->nombre,
+                'dominio'     => $tenant->domains->first()?->domain,
+                'direccion'   => $tenant->direccion,
+                'email'       => $tenant->email,
+                'telefono'    => $tenant->telefono,
+                'estado'      => $tenant->estado ?? 'activo',
+                'created_at'  => $tenant->created_at,
+                'suscripcion' => $sub ? [
+                    'id'               => $sub->id,
+                    'plan_id'          => $sub->plan_id,
+                    'estado'           => $sub->estado,
+                    'fecha_inicio'     => $sub->fecha_inicio?->toDateString(),
+                    'fecha_vencimiento'=> $sub->fecha_vencimiento?->toDateString(),
+                    'notas'            => $sub->notas,
+                    'plan'             => $sub->plan ? [
+                        'id'             => $sub->plan->id,
+                        'nombre'         => $sub->plan->nombre,
+                        'precio_mensual' => $sub->plan->precio_mensual,
+                    ] : null,
+                ] : null,
             ];
         });
 
@@ -44,17 +60,13 @@ class SuperAdminController extends Controller
             'telefono'   => 'nullable|string|max:20',
         ]);
 
-        // Generar un ID legible desde el nombre (slug)
         $id = \Illuminate\Support\Str::slug($request->nombre, '-');
-
-        // Asegurar unicidad del ID
         $base = $id;
         $i = 1;
         while (Tenant::find($id)) {
             $id = $base . '-' . $i++;
         }
 
-        // Crear tenant usando atributos virtuales (VirtualColumn trait)
         $tenant = new Tenant();
         $tenant->id = $id;
         $tenant->nombre = $request->nombre;
@@ -77,6 +89,7 @@ class SuperAdminController extends Controller
                 'email'      => $tenant->email,
                 'telefono'   => $tenant->telefono,
                 'estado'     => 'activo',
+                'suscripcion'=> null,
             ],
         ]);
     }
@@ -95,30 +108,17 @@ class SuperAdminController extends Controller
         ]);
 
         $tenant = Tenant::findOrFail($id);
-        
-        // Actualizar atributos virtuales directamente
-        if ($request->has('nombre')) {
-            $tenant->nombre = $request->nombre;
-        }
-        if ($request->has('direccion')) {
-            $tenant->direccion = $request->direccion;
-        }
-        if ($request->has('email')) {
-            $tenant->email = $request->email;
-        }
-        if ($request->has('telefono')) {
-            $tenant->telefono = $request->telefono;
-        }
-        
+
+        if ($request->has('nombre')) $tenant->nombre = $request->nombre;
+        if ($request->has('direccion')) $tenant->direccion = $request->direccion;
+        if ($request->has('email')) $tenant->email = $request->email;
+        if ($request->has('telefono')) $tenant->telefono = $request->telefono;
         $tenant->save();
 
-        // Actualizar dominio si se proporciona
         if ($request->has('dominio')) {
             $tenant->domains()->delete();
             $tenant->domains()->create(['domain' => $request->dominio]);
         }
-
-        $dominio = $tenant->domains->first()?->domain;
 
         return response()->json([
             'success' => true,
@@ -126,7 +126,7 @@ class SuperAdminController extends Controller
             'tenant'  => [
                 'id'        => $tenant->id,
                 'nombre'    => $tenant->nombre,
-                'dominio'   => $dominio,
+                'dominio'   => $tenant->domains()->first()?->domain,
                 'direccion' => $tenant->direccion,
                 'email'     => $tenant->email,
                 'telefono'  => $tenant->telefono,
@@ -141,18 +141,14 @@ class SuperAdminController extends Controller
     public function deleteTenant($id)
     {
         $tenant = Tenant::findOrFail($id);
-        
-        // Eliminar dominios asociados
         $tenant->domains()->delete();
-        
-        // Eliminar el tenant
         $tenant->delete();
 
         return response()->json(['success' => true, 'mensaje' => 'Agencia eliminada correctamente']);
     }
 
     /**
-     * Suspende un tenant actualizando su campo estado.
+     * Suspende un tenant.
      */
     public function suspenderTenant($id)
     {
@@ -176,11 +172,95 @@ class SuperAdminController extends Controller
     }
 
     /**
-     * Lista todos los usuarios del sistema (sin filtro de tenant, pero excluyendo super-admin).
+     * Lista todos los usuarios del sistema.
      */
     public function indexUsuarios()
     {
         $usuarios = User::withoutGlobalScopes()->where('rol', '!=', 'super-admin')->get();
         return response()->json($usuarios);
+    }
+
+    // ─── PLANES ────────────────────────────────────────────────────────────────
+
+    public function indexPlanes()
+    {
+        return response()->json(['planes' => Plan::orderBy('precio_mensual')->get()]);
+    }
+
+    public function storePlan(Request $request)
+    {
+        $request->validate([
+            'nombre'         => 'required|string|max:100',
+            'precio_mensual' => 'required|numeric|min:0',
+            'max_usuarios'   => 'nullable|integer|min:1',
+            'max_iconos'     => 'nullable|integer|min:1',
+            'activo'         => 'boolean',
+        ]);
+
+        $plan = Plan::create($request->only('nombre', 'precio_mensual', 'max_usuarios', 'max_iconos', 'activo'));
+
+        return response()->json(['success' => true, 'id' => $plan->id, 'plan' => $plan]);
+    }
+
+    public function updatePlan(Request $request, $id)
+    {
+        $request->validate([
+            'nombre'         => 'sometimes|required|string|max:100',
+            'precio_mensual' => 'sometimes|required|numeric|min:0',
+            'max_usuarios'   => 'sometimes|nullable|integer|min:1',
+            'max_iconos'     => 'sometimes|nullable|integer|min:1',
+            'activo'         => 'sometimes|boolean',
+        ]);
+
+        $plan = Plan::findOrFail($id);
+        $plan->update($request->only('nombre', 'precio_mensual', 'max_usuarios', 'max_iconos', 'activo'));
+
+        return response()->json(['success' => true, 'plan' => $plan]);
+    }
+
+    public function deletePlan($id)
+    {
+        Plan::findOrFail($id)->delete();
+        return response()->json(['success' => true, 'mensaje' => 'Plan eliminado']);
+    }
+
+    // ─── SUSCRIPCIONES ─────────────────────────────────────────────────────────
+
+    public function storeSuscripcion(Request $request)
+    {
+        $request->validate([
+            'tenant_id'         => 'required|string|exists:tenants,id',
+            'plan_id'           => 'required|integer|exists:planes,id',
+            'estado'            => 'required|in:activa,vencida,cancelada,trial',
+            'fecha_inicio'      => 'required|date',
+            'fecha_vencimiento' => 'nullable|date|after_or_equal:fecha_inicio',
+            'notas'             => 'nullable|string',
+        ]);
+
+        $sub = Suscripcion::updateOrCreate(
+            ['tenant_id' => $request->tenant_id],
+            $request->only('plan_id', 'estado', 'fecha_inicio', 'fecha_vencimiento', 'notas')
+        );
+
+        $sub->load('plan');
+
+        return response()->json(['success' => true, 'suscripcion' => $sub]);
+    }
+
+    public function updateSuscripcion(Request $request, $id)
+    {
+        $request->validate([
+            'plan_id'           => 'sometimes|integer|exists:planes,id',
+            'estado'            => 'sometimes|in:activa,vencida,cancelada,trial',
+            'fecha_inicio'      => 'sometimes|date',
+            'fecha_vencimiento' => 'sometimes|nullable|date',
+            'notas'             => 'sometimes|nullable|string',
+        ]);
+
+        $sub = Suscripcion::findOrFail($id);
+        $sub->update($request->only('plan_id', 'estado', 'fecha_inicio', 'fecha_vencimiento', 'notas'));
+        $sub->load('plan');
+
+        return response()->json(['success' => true, 'suscripcion' => $sub]);
     }
 }
