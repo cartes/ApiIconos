@@ -12,7 +12,7 @@ class EmpresaController extends Controller
     {
         return response()->json([
             'success' => true,
-            'empresas' => Empresa::all()
+            'empresas' => Empresa::all(),
         ]);
     }
 
@@ -33,6 +33,7 @@ class EmpresaController extends Controller
     public function destroy(Empresa $empresa)
     {
         $empresa->delete();
+
         return response()->json(['success' => true, 'mensaje' => 'Empresa eliminada']);
     }
 }

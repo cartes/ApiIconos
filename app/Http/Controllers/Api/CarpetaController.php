@@ -40,7 +40,7 @@ class CarpetaController extends Controller
             ? $request->targetEmpresaId
             : $user->empresaId;
 
-        if (!$contextEmpresaId) {
+        if (! $contextEmpresaId) {
             return response()->json(['success' => false, 'error' => 'No tienes empresa asignada'], 400);
         }
 

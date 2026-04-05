@@ -2,15 +2,12 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Illuminate\Database\Seeder;
-
-use App\Models\User;
-use App\Models\Icono;
-use App\Models\Empresa;
 use App\Models\Carpeta;
+use App\Models\Empresa;
+use App\Models\Icono;
+use App\Models\User;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\File;
 
 class MigracionJsonSeeder extends Seeder
@@ -20,7 +17,7 @@ class MigracionJsonSeeder extends Seeder
      */
     public function run(): void
     {
-        // Deshabilitar restricciones de FK para pgsql (Railway) si es necesario, 
+        // Deshabilitar restricciones de FK para pgsql (Railway) si es necesario,
         // aunque el orden correcto debería evitar problemas.
 
         // 1. MIGRAR EMPRESAS
@@ -74,7 +71,7 @@ class MigracionJsonSeeder extends Seeder
                     [
                         'nombre' => $data['nombre'],
                         'empresaId' => $data['empresaId'],
-                        'creadoPor' => $data['creadoPor']
+                        'creadoPor' => $data['creadoPor'],
                     ]
                 );
             }
@@ -96,7 +93,7 @@ class MigracionJsonSeeder extends Seeder
                         'subidoPor' => $item['subidoPor'],
                         'fechaSubida' => Carbon::parse($item['fechaSubida']),
                         'etiqueta' => $item['etiqueta'] ?? null,
-                        'orden' => $item['orden'] ?? 0
+                        'orden' => $item['orden'] ?? 0,
                     ]
                 );
             }

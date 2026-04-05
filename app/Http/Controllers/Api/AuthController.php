@@ -18,7 +18,7 @@ class AuthController extends Controller
 
         $user = User::where('email', $request->email)->first();
 
-        if (!$user) {
+        if (! $user) {
             return response()->json(['success' => false, 'error' => 'Usuario no existe'], 401);
         }
 
@@ -31,7 +31,7 @@ class AuthController extends Controller
         }
 
         // 2. Si no es bcrypt o falló, intentar con Legacy Hash
-        if (!$autenticado) {
+        if (! $autenticado) {
             // Apps script sent base64 of sha256 bytes string
             $hashAttempt1 = base64_encode(hash('sha256', $request->clave, true));
             // Sometimes it was hex
@@ -46,7 +46,7 @@ class AuthController extends Controller
             }
         }
 
-        if (!$autenticado) {
+        if (! $autenticado) {
             return response()->json(['success' => false, 'error' => 'Contraseña incorrecta'], 401);
         }
 
@@ -65,13 +65,14 @@ class AuthController extends Controller
                 'empresaId' => $user->empresaId,
                 'empresaNombre' => $user->empresaNombre,
                 'puedeEliminar' => $user->puedeEliminar !== false,
-            ]
+            ],
         ]);
     }
 
     public function me(Request $request)
     {
         $user = $request->user();
+
         return response()->json([
             'success' => true,
             'usuario' => [
@@ -81,13 +82,14 @@ class AuthController extends Controller
                 'empresaId' => $user->empresaId,
                 'empresaNombre' => $user->empresaNombre,
                 'puedeEliminar' => $user->puedeEliminar !== false,
-            ]
+            ],
         ]);
     }
 
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
+
         return response()->json(['success' => true, 'mensaje' => 'Sesión cerrada exitosamente']);
     }
 
@@ -106,14 +108,14 @@ class AuthController extends Controller
             $autenticado = Hash::check($request->clave, $user->hash);
         }
 
-        if (!$autenticado) {
+        if (! $autenticado) {
             $legacyHash = base64_encode(hash('sha256', $request->clave, true));
             if ($legacyHash === $user->hash) {
                 $autenticado = true;
             }
         }
 
-        if (!$autenticado) {
+        if (! $autenticado) {
             return response()->json(['success' => false, 'error' => 'Contraseña actual incorrecta'], 400);
         }
 

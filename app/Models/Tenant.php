@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
-use Stancl\Tenancy\Database\Models\Tenant as BaseTenant;
+use Laravel\Sanctum\HasApiTokens;
 use Stancl\Tenancy\Database\Concerns\HasDomains;
+use Stancl\Tenancy\Database\Models\Tenant as BaseTenant;
 
 class Tenant extends BaseTenant
 {
-    use HasDomains;
+    use HasApiTokens, HasDomains;
 
     public function suscripcion()
     {

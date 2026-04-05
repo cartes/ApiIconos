@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\IconoClick;
 use App\Models\Icono;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -49,6 +48,7 @@ class DashboardController extends Controller
 
         $topUsuarios = $topUsuarios->map(function ($row) use ($usuariosMap) {
             $row->nombre = $usuariosMap[$row->user_email] ?? $row->user_email;
+
             return $row;
         });
 

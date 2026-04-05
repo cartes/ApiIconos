@@ -11,16 +11,16 @@ class CheckRole
     /**
      * Handle an incoming request.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param  Closure(Request): (Response)  $next
      */
     public function handle(Request $request, Closure $next, $role): Response
     {
         $user = $request->user();
 
-        if (!$user || $user->rol !== $role) {
+        if (! $user || $user->rol !== $role) {
             return response()->json([
                 'success' => false,
-                'error' => 'No tienes permisos de ' . $role
+                'error' => 'No tienes permisos de '.$role,
             ], 403);
         }
 

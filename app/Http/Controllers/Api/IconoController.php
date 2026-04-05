@@ -81,7 +81,7 @@ class IconoController extends Controller
     public function update(Request $request, Icono $icono)
     {
         $request->validate([
-            'nuevaEtiqueta' => 'required|string'
+            'nuevaEtiqueta' => 'required|string',
         ]);
 
         $user = $request->user();
@@ -119,8 +119,8 @@ class IconoController extends Controller
         // Registrar interacción del usuario para el ranking
         IconoClick::create([
             'user_email' => $user->email,
-            'icono_id'   => $icono->id,
-            'tenant_id'  => tenant('id'),
+            'icono_id' => $icono->id,
+            'tenant_id' => tenant('id'),
         ]);
 
         return response()->json(['success' => true]);

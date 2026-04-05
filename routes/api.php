@@ -2,16 +2,15 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CarpetaController;
-use App\Http\Controllers\Api\PerfilController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\EmpresaController;
 use App\Http\Controllers\Api\IconoController;
+use App\Http\Controllers\Api\PerfilController;
 use App\Http\Controllers\Api\SystemController;
 use App\Http\Controllers\Api\UsuarioController;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\SuperAdmin\ApiKeyController;
 use App\Http\Controllers\SuperAdminController;
-
+use Illuminate\Support\Facades\Route;
 use Stancl\Tenancy\Middleware\InitializeTenancyByRequestData;
 
 // ==========================================
@@ -53,10 +52,11 @@ Route::middleware([
     // Información del Tenant actual
     Route::get('/tenant-info', function () {
         $tenant = tenant();
+
         return response()->json([
             'success' => true,
             'nombre' => $tenant->nombre,
-            'id' => $tenant->id
+            'id' => $tenant->id,
         ]);
     });
 
@@ -99,4 +99,9 @@ Route::middleware(['auth:sanctum', 'role:super-admin'])->prefix('super-admin')->
     // Suscripciones
     Route::post('/suscripciones', [SuperAdminController::class, 'storeSuscripcion']);
     Route::put('/suscripciones/{id}', [SuperAdminController::class, 'updateSuscripcion']);
+
+    // API Keys
+    Route::get('/api-keys', [ApiKeyController::class, 'index']);
+    Route::post('/api-keys', [ApiKeyController::class, 'store']);
+    Route::delete('/api-keys/{id}', [ApiKeyController::class, 'destroy']);
 });

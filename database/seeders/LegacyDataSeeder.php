@@ -6,12 +6,13 @@ use App\Models\Carpeta;
 use App\Models\Empresa;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Schema;
 
 class LegacyDataSeeder extends Seeder
 {
     public function run(): void
     {
-        \Illuminate\Support\Facades\Schema::disableForeignKeyConstraints();
+        Schema::disableForeignKeyConstraints();
 
         // 1. Empresas
         $empresas = [
@@ -161,6 +162,6 @@ class LegacyDataSeeder extends Seeder
             Carpeta::updateOrCreate(['id' => $carpetaData['id']], $carpetaData);
         }
 
-        \Illuminate\Support\Facades\Schema::enableForeignKeyConstraints();
+        Schema::enableForeignKeyConstraints();
     }
 }

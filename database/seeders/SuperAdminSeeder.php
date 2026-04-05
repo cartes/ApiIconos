@@ -2,10 +2,9 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
-use App\Models\User;
 
 class SuperAdminSeeder extends Seeder
 {
@@ -16,7 +15,7 @@ class SuperAdminSeeder extends Seeder
     {
         $role = Role::firstOrCreate([
             'name' => 'Super-Admin',
-            'tenant_id' => '1'
+            'tenant_id' => '1',
         ]);
 
         $user = User::firstOrCreate([
@@ -25,12 +24,12 @@ class SuperAdminSeeder extends Seeder
             'hash' => bcrypt('12345678'),
             'rol' => 'super-admin',
             'tenant_id' => '1',
-            'fechaCreacion' => now()
+            'fechaCreacion' => now(),
         ]);
 
         setPermissionsTeamId('1');
 
-        if (!$user->hasRole('Super-Admin')) {
+        if (! $user->hasRole('Super-Admin')) {
             $user->assignRole($role);
         }
 

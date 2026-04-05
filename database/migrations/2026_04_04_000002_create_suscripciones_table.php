@@ -20,7 +20,7 @@ return new class extends Migration
 
             // Un tenant solo puede tener una suscripción activa a la vez
             $table->unique('tenant_id');
-            
+
             // FK hacia tenants (string porque stancl/tenancy usa UUIDs o custom IDs)
             $table->foreign('tenant_id')->references('id')->on('tenants')->onDelete('cascade');
         });

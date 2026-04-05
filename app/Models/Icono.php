@@ -37,7 +37,7 @@ class Icono extends Model
     protected static function booted()
     {
         static::creating(function ($model) {
-            if (!$model->id) {
+            if (! $model->id) {
                 $model->id = (string) Str::uuid();
             }
         });

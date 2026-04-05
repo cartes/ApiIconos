@@ -12,10 +12,11 @@ class SystemController extends Controller
     public function verificarEstado()
     {
         $hayAdmin = User::where('rol', 'admin')->exists();
+
         return response()->json([
             'success' => true,
             'hayAdmin' => $hayAdmin,
-            'necesitaBootstrap' => !$hayAdmin,
+            'necesitaBootstrap' => ! $hayAdmin,
         ]);
     }
 

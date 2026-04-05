@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
 use App\Models\Empresa;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
@@ -26,7 +26,7 @@ class UsuarioController extends Controller
 
         return response()->json([
             'success' => true,
-            'usuarios' => $usuarios
+            'usuarios' => $usuarios,
         ]);
     }
 
@@ -37,7 +37,7 @@ class UsuarioController extends Controller
             'email' => 'required|email|unique:users,email',
             'clave' => 'required|string|min:8',
             'rol' => ['required', Rule::in(['admin', 'usuario', 'editor'])],
-            'empresaId' => 'nullable|exists:empresas,id'
+            'empresaId' => 'nullable|exists:empresas,id',
         ]);
 
         $empresaNombre = null;

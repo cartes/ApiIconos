@@ -11,7 +11,7 @@ class CheckPermission
     /**
      * Handle an incoming request.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param  Closure(Request): (Response)  $next
      */
     public function handle(Request $request, Closure $next, $permission): Response
     {
@@ -26,7 +26,7 @@ class CheckPermission
         if ($permission === 'eliminar' && $user && $user->puedeEliminar === false) {
             return response()->json([
                 'success' => false,
-                'error' => 'No tienes permiso para eliminar'
+                'error' => 'No tienes permiso para eliminar',
             ], 403);
         }
 
@@ -34,7 +34,7 @@ class CheckPermission
         if ($permission === 'editar' && $user && $user->puedeEliminar === false) {
             return response()->json([
                 'success' => false,
-                'error' => 'No tienes permiso para editar'
+                'error' => 'No tienes permiso para editar',
             ], 403);
         }
 
