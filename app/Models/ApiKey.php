@@ -28,6 +28,8 @@ class ApiKey extends PersonalAccessToken
      */
     public array $domains {
         get => json_decode($this->attributes['allowed_domains'] ?? '[]', true) ?: [];
-        set(array $value) => $this->attributes['allowed_domains'] = json_encode($value);
+        set(array $value) {
+            $this->attributes['allowed_domains'] = json_encode($value);
+        }
     }
 }
