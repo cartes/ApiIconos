@@ -7,6 +7,12 @@ use Laravel\Sanctum\PersonalAccessToken;
 class ApiKey extends PersonalAccessToken
 {
     /**
+     * Explicit table name to prevent Eloquent from deriving 'api_keys' from the class name
+     * instead of inheriting 'personal_access_tokens' from PersonalAccessToken.
+     */
+    protected $table = 'personal_access_tokens';
+
+    /**
      * The attributes that should be cast.
      *
      * @var array
