@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\CheckPermission;
 use App\Http\Middleware\CheckRole;
+use App\Http\Middleware\DynamicCors;
 use App\Http\Middleware\VerifyApiKey;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -16,6 +17,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // DynamicCors debe correr ANTES que HandleCors para actualizar la config
+        $middleware->prepend(DynamicCors::class);
+
         $middleware->alias([
             'role' => CheckRole::class,
             'permission' => CheckPermission::class,

@@ -25,6 +25,9 @@ return [
         'https://*.aiconico.cl',
         'https://*.aiconic.cl',
         'https://aiconic.cl',
+        'http://localhost:5173',
+        'http://localhost:5174',
+        'http://localhost:8080',
     ],
 
     'allowed_origins_patterns' => [],

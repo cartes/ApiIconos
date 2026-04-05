@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ApiKey;
 use App\Models\Tenant;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class ApiKeyController extends Controller
 {
@@ -45,6 +46,7 @@ class ApiKeyController extends Controller
         if (! empty($validated['allowed_domains'])) {
             $tokenModel->domains = $validated['allowed_domains'];
             $tokenModel->save();
+            Cache::forget('cors_allowed_origins_db');
         }
 
         return response()->json([
@@ -62,6 +64,8 @@ class ApiKeyController extends Controller
         $token = ApiKey::findOrFail($id);
 
         $token->delete();
+
+        Cache::forget('cors_allowed_origins_db');
 
         return response()->json([
             'message' => 'API Key revoked successfully.',
