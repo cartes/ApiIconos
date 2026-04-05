@@ -60,15 +60,7 @@ class SuperAdminController extends Controller
             'telefono' => 'nullable|string|max:20',
         ]);
 
-        $id = Str::slug($request->nombre, '-');
-        $base = $id;
-        $i = 1;
-        while (Tenant::find($id)) {
-            $id = $base.'-'.$i++;
-        }
-
         $tenant = new Tenant;
-        $tenant->id = $id;
         $tenant->nombre = $request->nombre;
         $tenant->direccion = $request->direccion;
         $tenant->email = $request->email;
@@ -76,11 +68,17 @@ class SuperAdminController extends Controller
         $tenant->estado = 'activo';
         $tenant->save();
 
+        // Crear dominio asociado
         $tenant->domains()->create(['domain' => $request->dominio]);
+
+        // Generar API TOKEN automático para trabajo inmediato
+        $tokenName = 'Default API Key (' . $request->nombre . ')';
+        $newAccessToken = $tenant->createToken($tokenName);
 
         return response()->json([
             'success' => true,
             'mensaje' => 'Agencia registrada correctamente',
+            'token' => $newAccessToken->plainTextToken,
             'tenant' => [
                 'id' => $tenant->id,
                 'nombre' => $tenant->nombre,
