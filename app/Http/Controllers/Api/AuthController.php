@@ -64,6 +64,7 @@ class AuthController extends Controller
                 'rol' => $user->rol,
                 'empresaId' => $user->empresaId,
                 'empresaNombre' => $user->empresaNombre,
+                'tenantId' => $user->tenant_id,
                 'puedeEliminar' => $user->puedeEliminar !== false,
             ],
         ]);
@@ -81,6 +82,7 @@ class AuthController extends Controller
                 'rol' => $user->rol,
                 'empresaId' => $user->empresaId,
                 'empresaNombre' => $user->empresaNombre,
+                'tenantId' => $user->tenant_id,
                 'puedeEliminar' => $user->puedeEliminar !== false,
             ],
         ]);
