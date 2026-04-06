@@ -8,7 +8,6 @@ use App\Http\Controllers\Api\IconoController;
 use App\Http\Controllers\Api\PerfilController;
 use App\Http\Controllers\Api\SystemController;
 use App\Http\Controllers\Api\UsuarioController;
-use App\Http\Controllers\SuperAdmin\ApiKeyController;
 use App\Http\Controllers\SuperAdminController;
 use Illuminate\Support\Facades\Route;
 use Stancl\Tenancy\Middleware\InitializeTenancyByRequestData;
@@ -99,9 +98,4 @@ Route::middleware(['auth:sanctum', 'role:super-admin'])->prefix('super-admin')->
     // Suscripciones
     Route::post('/suscripciones', [SuperAdminController::class, 'storeSuscripcion']);
     Route::put('/suscripciones/{id}', [SuperAdminController::class, 'updateSuscripcion']);
-
-    // API Keys
-    Route::get('/api-keys', [ApiKeyController::class, 'index']);
-    Route::post('/api-keys', [ApiKeyController::class, 'store']);
-    Route::delete('/api-keys/{id}', [ApiKeyController::class, 'destroy']);
 });

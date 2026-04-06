@@ -2,10 +2,9 @@
 
 namespace App\Providers;
 
-use App\Models\ApiKey;
+
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
-use Laravel\Sanctum\Sanctum;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -26,6 +25,5 @@ class AppServiceProvider extends ServiceProvider
             return $user->hasRole('Super-Admin') ? true : null;
         });
 
-        Sanctum::usePersonalAccessTokenModel(ApiKey::class);
     }
 }
