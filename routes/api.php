@@ -41,17 +41,10 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 // ==========================================
-// RUTAS TENANT (Identificadas por {tenant} slug en la URL)
-// Enfoque activo: InitializeTenancyByPath  →  /api/{tenant}/...
-//
-// Para cambiar a identificación por subdominio, reemplazar el middleware por:
-// \Stancl\Tenancy\Middleware\InitializeTenancyBySubdomain::class
-// y descomentar el import correspondiente al inicio del archivo.
+// LÓGICA DE RUTAS TENANT (Compartida entre métodos de identificación)
 // ==========================================
 
-Route::prefix('{tenant}')->middleware([
-    InitializeTenancyByPath::class,
-])->group(function () {
+$registrarRutasTenant = function () {
     // Rutas de invitado dentro del tenant
     Route::post('/login', [AuthController::class, 'login']);
     Route::get('/estado', [SystemController::class, 'verificarEstado']);
@@ -103,7 +96,23 @@ Route::prefix('{tenant}')->middleware([
         Route::put('carpetas/reorder', [CarpetaController::class, 'reorder']);
         Route::apiResource('carpetas', CarpetaController::class)->except(['show']);
     });
-});
+};
+
+// ==========================================
+// MÉTODOS DE IDENTIFICACIÓN
+// ==========================================
+
+// 1. Identificación por RUTA (ej. /api/agencia-slug/...)
+// Usado principalmente por el nuevo frontend iconos_comercial
+Route::prefix('{tenant}')->middleware([
+    InitializeTenancyByPath::class,
+])->group($registrarRutasTenant);
+
+// 2. Identificación por HEADER (X-Tenant)
+// Para compatibilidad con el repositorio original 'iconos'
+Route::middleware([
+    \Stancl\Tenancy\Middleware\InitializeTenancyByRequestData::class,
+])->group($registrarRutasTenant);
 
 // Rutas para el SUPERADMINISTRADOR
 Route::middleware(['auth:sanctum', 'role:super-admin'])->prefix('super-admin')->group(function () {
