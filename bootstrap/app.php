@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\CheckPermission;
+use App\Http\Middleware\CheckRole;
 
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
