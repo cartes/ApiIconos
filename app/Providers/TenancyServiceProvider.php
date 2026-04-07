@@ -100,6 +100,8 @@ class TenancyServiceProvider extends ServiceProvider
 
     public function boot()
     {
+        \Stancl\Tenancy\Middleware\InitializeTenancyByPath::$column = 'slug';
+
         $this->bootEvents();
         $this->mapRoutes();
 

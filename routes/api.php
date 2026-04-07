@@ -40,12 +40,15 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 // ==========================================
-// RUTAS TENANT (Requieren X-Tenant Header)
+// RUTAS TENANT (Identificadas por {tenant} slug en la URL)
 // ==========================================
 
-Route::middleware([
+// Para producción, cambiar InitializeTenancyByPath::class por InitializeTenancyBySubdomain::class
+// y eliminar el prefix('{tenant}').
+Route::prefix('{tenant}')->middleware([
     'auth:sanctum',
-    InitializeTenancyByRequestData::class,
+    \Stancl\Tenancy\Middleware\InitializeTenancyByPath::class,
+    // \Stancl\Tenancy\Middleware\InitializeTenancyBySubdomain::class, // Comentar la de arriba y usar esta en producción
 ])->group(function () {
 
     // Información del Tenant actual
@@ -55,6 +58,7 @@ Route::middleware([
         return response()->json([
             'success' => true,
             'nombre' => $tenant->nombre,
+            'slug' => $tenant->slug,
             'id' => $tenant->id,
         ]);
     });
