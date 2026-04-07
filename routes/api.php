@@ -10,10 +10,11 @@ use App\Http\Controllers\Api\SystemController;
 use App\Http\Controllers\Api\UsuarioController;
 use App\Http\Controllers\SuperAdminController;
 use Illuminate\Support\Facades\Route;
-use Stancl\Tenancy\Middleware\InitializeTenancyByRequestData;
+use Stancl\Tenancy\Middleware\InitializeTenancyByPath;
+// use Stancl\Tenancy\Middleware\InitializeTenancyBySubdomain; // Alternativa: identificación por subdominio (ej. agencia.miapp.com)
 
 // ==========================================
-// RUTAS CENTRALES (No requieren X-Tenant)
+// RUTAS CENTRALES (No requieren contexto de tenant)
 // ==========================================
 
 Route::get('/estado', [SystemController::class, 'verificarEstado']);
@@ -41,10 +42,15 @@ Route::middleware('auth:sanctum')->group(function () {
 
 // ==========================================
 // RUTAS TENANT (Identificadas por {tenant} slug en la URL)
+// Enfoque activo: InitializeTenancyByPath  →  /api/{tenant}/...
+//
+// Para cambiar a identificación por subdominio, reemplazar el middleware por:
+// \Stancl\Tenancy\Middleware\InitializeTenancyBySubdomain::class
+// y descomentar el import correspondiente al inicio del archivo.
 // ==========================================
 
 Route::prefix('{tenant}')->middleware([
-    \Stancl\Tenancy\Middleware\InitializeTenancyByPath::class,
+    InitializeTenancyByPath::class,
 ])->group(function () {
     // Rutas de invitado dentro del tenant
     Route::post('/login', [AuthController::class, 'login']);

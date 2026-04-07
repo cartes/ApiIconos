@@ -36,7 +36,9 @@ return [
      * To configure their behavior, see the config keys below.
      */
     'bootstrappers' => [
-        DatabaseTenancyBootstrapper::class,
+        // DatabaseTenancyBootstrapper is disabled: this app uses a single shared central DB
+        // with tenant_id scoping via BelongsToTenant — no per-tenant database switching needed.
+        // DatabaseTenancyBootstrapper::class,
         CacheTenancyBootstrapper::class,
         FilesystemTenancyBootstrapper::class,
         QueueTenancyBootstrapper::class,
