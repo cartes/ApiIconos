@@ -43,44 +43,47 @@ Route::middleware('auth:sanctum')->group(function () {
 // RUTAS TENANT (Identificadas por {tenant} slug en la URL)
 // ==========================================
 
-// Para producción, cambiar InitializeTenancyByPath::class por InitializeTenancyBySubdomain::class
-// y eliminar el prefix('{tenant}').
 Route::prefix('{tenant}')->middleware([
-    'auth:sanctum',
     \Stancl\Tenancy\Middleware\InitializeTenancyByPath::class,
-    // \Stancl\Tenancy\Middleware\InitializeTenancyBySubdomain::class, // Comentar la de arriba y usar esta en producción
 ])->group(function () {
+    // Rutas de invitado dentro del tenant
+    Route::post('/login', [AuthController::class, 'login']);
+    Route::get('/estado', [SystemController::class, 'verificarEstado']);
 
-    // Información del Tenant actual
-    Route::get('/tenant-info', function () {
-        $tenant = tenant();
+    // Rutas protegidas dentro del tenant
+    Route::middleware('auth:sanctum')->group(function () {
 
-        return response()->json([
-            'success' => true,
-            'nombre' => $tenant->nombre,
-            'slug' => $tenant->slug,
-            'id' => $tenant->id,
-        ]);
+        // Información del Tenant actual
+        Route::get('/tenant-info', function () {
+            $tenant = tenant();
+
+            return response()->json([
+                'success' => true,
+                'nombre' => $tenant->nombre,
+                'slug' => $tenant->slug,
+                'id' => $tenant->id,
+            ]);
+        });
+
+        // Gestión de Usuarios del Tenant
+        Route::middleware('role:admin')->group(function () {
+            Route::apiResource('usuarios', UsuarioController::class)->except(['show']);
+        });
+
+        // Gestión de Iconos
+        Route::put('iconos/reorder', [IconoController::class, 'reorder']);
+        Route::apiResource('iconos', IconoController::class)->only(['index', 'store']);
+        Route::put('iconos/{icono}', [IconoController::class, 'update'])->middleware('permission:editar');
+        Route::delete('iconos/{icono}', [IconoController::class, 'destroy'])->middleware('permission:eliminar');
+        Route::post('iconos/{icono}/click', [IconoController::class, 'registerClick']);
+
+        // Dashboard de métricas (admin)
+        Route::get('dashboard', [DashboardController::class, 'index']);
+
+        // Gestión de Carpetas
+        Route::put('carpetas/reorder', [CarpetaController::class, 'reorder']);
+        Route::apiResource('carpetas', CarpetaController::class)->except(['show']);
     });
-
-    // Gestión de Usuarios del Tenant
-    Route::middleware('role:admin')->group(function () {
-        Route::apiResource('usuarios', UsuarioController::class)->except(['show']);
-    });
-
-    // Gestión de Iconos
-    Route::put('iconos/reorder', [IconoController::class, 'reorder']);
-    Route::apiResource('iconos', IconoController::class)->only(['index', 'store']);
-    Route::put('iconos/{icono}', [IconoController::class, 'update'])->middleware('permission:editar');
-    Route::delete('iconos/{icono}', [IconoController::class, 'destroy'])->middleware('permission:eliminar');
-    Route::post('iconos/{icono}/click', [IconoController::class, 'registerClick']);
-
-    // Dashboard de métricas (admin)
-    Route::get('dashboard', [DashboardController::class, 'index']);
-
-    // Gestión de Carpetas
-    Route::put('carpetas/reorder', [CarpetaController::class, 'reorder']);
-    Route::apiResource('carpetas', CarpetaController::class)->except(['show']);
 });
 
 // Rutas para el SUPERADMINISTRADOR
