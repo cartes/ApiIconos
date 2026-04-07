@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\CarpetaController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\EmpresaController;
 use App\Http\Controllers\Api\IconoController;
+use App\Http\Controllers\Api\InvitationController;
 use App\Http\Controllers\Api\PerfilController;
 use App\Http\Controllers\Api\SystemController;
 use App\Http\Controllers\Api\UsuarioController;
@@ -20,6 +21,12 @@ use Stancl\Tenancy\Middleware\InitializeTenancyByPath;
 Route::get('/estado', [SystemController::class, 'verificarEstado']);
 Route::post('/primer-admin', [SystemController::class, 'crearPrimerAdmin']);
 Route::post('/login', [AuthController::class, 'login']);
+
+// ── Invitaciones públicas (sin contexto de tenant) ───────────────────────
+// Deben registrarse ANTES del grupo Route::prefix('{tenant}') para tener
+// precedencia y evitar que "invitar" sea interpretado como un slug de tenant.
+Route::get('/invitar/{token}', [InvitationController::class, 'show']);
+Route::post('/invitar/{token}/aceptar', [InvitationController::class, 'accept']);
 
 // Rutas protegidas globales (Administración Maestra)
 Route::middleware('auth:sanctum')->group(function () {
@@ -80,6 +87,11 @@ $registrarRutasTenant = function () {
         Route::middleware('role:admin')->name('tenant.')->group(function () {
             Route::apiResource('usuarios', UsuarioController::class)->except(['show']);
             Route::apiResource('empresas', EmpresaController::class)->except(['show', 'update']);
+
+            // Gestión de Invitaciones del Tenant
+            Route::get('invitaciones', [InvitationController::class, 'index']);
+            Route::post('invitaciones', [InvitationController::class, 'store']);
+            Route::delete('invitaciones/{invitacion}', [InvitationController::class, 'destroy']);
         });
 
         // Gestión de Iconos
