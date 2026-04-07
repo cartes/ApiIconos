@@ -78,7 +78,7 @@ Route::prefix('{tenant}')->middleware([
         });
 
         // Gestión de Usuarios y Empresas del Tenant (solo admin)
-        Route::middleware('role:admin')->group(function () {
+        Route::middleware('role:admin')->name('tenant.')->group(function () {
             Route::apiResource('usuarios', UsuarioController::class)->except(['show']);
             Route::apiResource('empresas', EmpresaController::class)->except(['show', 'update']);
         });
