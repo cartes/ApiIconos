@@ -53,6 +53,18 @@ Route::prefix('{tenant}')->middleware([
     // Rutas protegidas dentro del tenant
     Route::middleware('auth:sanctum')->group(function () {
 
+        // Sesión del usuario en contexto tenant
+        Route::get('/me', [AuthController::class, 'me']);
+        Route::post('/logout', [AuthController::class, 'logout']);
+        Route::post('/cambiar-clave', [AuthController::class, 'cambiarClave']);
+
+        // Perfil del usuario en contexto tenant
+        Route::put('/perfil', [PerfilController::class, 'actualizarDatos']);
+        Route::put('/perfil/password', [PerfilController::class, 'cambiarPassword']);
+        Route::get('/perfil/sesiones', [PerfilController::class, 'listarSesiones']);
+        Route::delete('/perfil/sesiones', [PerfilController::class, 'revocarOtrasSesiones']);
+        Route::delete('/perfil/sesiones/{tokenId}', [PerfilController::class, 'revocarSesion']);
+
         // Información del Tenant actual
         Route::get('/tenant-info', function () {
             $tenant = tenant();
@@ -65,9 +77,10 @@ Route::prefix('{tenant}')->middleware([
             ]);
         });
 
-        // Gestión de Usuarios del Tenant
+        // Gestión de Usuarios y Empresas del Tenant (solo admin)
         Route::middleware('role:admin')->group(function () {
             Route::apiResource('usuarios', UsuarioController::class)->except(['show']);
+            Route::apiResource('empresas', EmpresaController::class)->except(['show', 'update']);
         });
 
         // Gestión de Iconos
