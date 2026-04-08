@@ -53,8 +53,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
 $registrarRutasTenant = function () {
     // Rutas de invitado dentro del tenant
+    // Nota: /estado NO se incluye aquí porque ya está registrada como ruta central
+    // (sin middleware de tenant) y no requiere contexto de tenant.
     Route::post('/login', [AuthController::class, 'login']);
-    Route::get('/estado', [SystemController::class, 'verificarEstado']);
 
     // Rutas protegidas dentro del tenant
     Route::middleware('auth:sanctum')->group(function () {
