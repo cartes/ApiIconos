@@ -18,12 +18,17 @@ class InvitationMail extends Mailable
     public string $tenantNombre;
     public string $rol;
 
+    /**
+     * @param  string|null  $frontendUrl  URL base del frontend que envió la invitación.
+     *                                    Si es null, usa FRONTEND_URL_DEFAULT del .env.
+     */
     public function __construct(
         public readonly Invitation $invitation,
         public readonly Tenant $tenant,
+        ?string $frontendUrl = null,
     ) {
-        $frontendUrl = rtrim(config('app.frontend_url', config('app.url')), '/');
-        $this->acceptUrl  = $frontendUrl . '/#/invitacion/' . $invitation->token;
+        $base = rtrim($frontendUrl ?? config('app.frontend_url', config('app.url')), '/');
+        $this->acceptUrl  = $base . '/#/invitacion/' . $invitation->token;
         $this->tenantNombre = $tenant->nombre ?? $tenant->id;
         $this->rol = $invitation->rol;
     }

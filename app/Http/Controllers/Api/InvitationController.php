@@ -79,8 +79,12 @@ class InvitationController extends Controller
             'expires_at' => now()->addDays(7),
         ]);
 
+        // Detect the frontend URL from the request Origin header so the email
+        // links back to whichever frontend (iconos or iconos_comercial) sent the invite.
+        $frontendUrl = $this->resolveFrontendUrl($request);
+
         try {
-            Mail::to($request->email)->send(new InvitationMail($invitation, $currentTenant));
+            Mail::to($request->email)->send(new InvitationMail($invitation, $currentTenant, $frontendUrl));
         } catch (\Exception $e) {
             $invitation->delete();
 
@@ -193,5 +197,32 @@ class InvitationController extends Controller
         $invitacion->delete();
 
         return response()->json(['success' => true, 'mensaje' => 'Invitación cancelada.']);
+    }
+
+    /**
+     * Resolve the correct frontend base URL from the request Origin header.
+     *
+     * Compares the Origin against the list of allowed frontend URLs defined in .env:
+     *   FRONTEND_URL_ICONOS=https://iconos.up.railway.app
+     *   FRONTEND_URL_ICONOS_COMERCIAL=https://iconos-comercial.up.railway.app
+     *
+     * Falls back to FRONTEND_URL (or APP_URL) if no match is found.
+     */
+    private function resolveFrontendUrl(Request $request): string
+    {
+        $origin = $request->header('Origin') ?? $request->header('Referer') ?? '';
+
+        $allowed = array_filter([
+            env('FRONTEND_URL_ICONOS'),
+            env('FRONTEND_URL_ICONOS_COMERCIAL'),
+        ]);
+
+        foreach ($allowed as $url) {
+            if ($origin && str_starts_with(rtrim($origin, '/'), rtrim($url, '/'))) {
+                return rtrim($url, '/');
+            }
+        }
+
+        return rtrim(config('app.frontend_url', config('app.url')), '/');
     }
 }
