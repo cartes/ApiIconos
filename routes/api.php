@@ -116,7 +116,7 @@ $registrarRutasTenant = function () {
 
 // 1. Identificación por RUTA (ej. /api/agencia-slug/...)
 // Usado principalmente por el nuevo frontend iconos_comercial
-Route::prefix('{tenant}')->middleware([
+Route::prefix('{tenant}')->name('path.')->middleware([
     InitializeTenancyByPath::class,
 ])->group($registrarRutasTenant);
 
