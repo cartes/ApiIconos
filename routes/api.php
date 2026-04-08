@@ -52,11 +52,9 @@ Route::middleware('auth:sanctum')->group(function () {
 // ==========================================
 
 $registrarRutasTenant = function () {
-    // Nota: /login y /estado NO se incluyen aquí porque ya están registradas como
-    // rutas centrales (sin middleware de tenant). El AuthController::login consulta
-    // usuarios globalmente (por email, sin scoping de tenant), por lo que NO necesita
-    // contexto de tenant. Incluirlos aquí causaría que el middleware
-    // InitializeTenancyByRequestData explote cuando no se envía header X-Tenant.
+    // Nota: /login NO está aquí para evitar que el grupo Header (InitializeTenancyByRequestData)
+    // lo registre sin prefijo y sobreescriba la ruta central /login.
+    // El grupo Path lo registra explícitamente como /{tenant}/login (ver más abajo).
 
     // Rutas protegidas dentro del tenant
     Route::middleware('auth:sanctum')->group(function () {
@@ -116,14 +114,20 @@ $registrarRutasTenant = function () {
 // MÉTODOS DE IDENTIFICACIÓN
 // ==========================================
 
-// 1. Identificación por RUTA (ej. /api/agencia-slug/...)
-// Usado principalmente por el nuevo frontend iconos_comercial
+// 1. Identificación por RUTA (ej. /api/1/login, /api/agencia-slug/iconos)
+// Usado por iconos (base /api/1/) y por iconos_comercial (/{slug}/)
+// Se agrega /login aquí porque iconos lo necesita como /{tenant}/login.
+// NO va en $registrarRutasTenant para no afectar al grupo Header.
 Route::prefix('{tenant}')->name('path.')->middleware([
     InitializeTenancyByPath::class,
-])->group($registrarRutasTenant);
+])->group(function () use ($registrarRutasTenant) {
+    Route::post('/login', [AuthController::class, 'login']);
+    $registrarRutasTenant();
+});
 
 // 2. Identificación por HEADER (X-Tenant)
-// Para compatibilidad con el repositorio original 'iconos'
+// Para compatibilidad con clientes que usen X-Tenant en lugar de URL.
+// Login NO se incluye: la ruta central /login (sin middleware) lo maneja.
 Route::middleware([
     \Stancl\Tenancy\Middleware\InitializeTenancyByRequestData::class,
 ])->group($registrarRutasTenant);
