@@ -103,6 +103,15 @@ class TenancyServiceProvider extends ServiceProvider
         \Stancl\Tenancy\Middleware\InitializeTenancyByPath::$column = 'slug';
         \Stancl\Tenancy\Middleware\InitializeTenancyByRequestData::$header = 'X-Tenant';
 
+        // Si no se puede identificar el tenant por request data (header X-Tenant ausente
+        // o vacío), simplemente continuar sin contexto de tenant en lugar de lanzar
+        // una excepción. Esto permite que rutas centrales como /estado o /login sean
+        // accesibles sin el header, mientras que las rutas que requieren tenant lo
+        // obtendrán correctamente cuando el header esté presente.
+        \Stancl\Tenancy\Middleware\InitializeTenancyByRequestData::$onFail = function ($exception, $request, $next) {
+            return $next($request);
+        };
+
         $this->bootEvents();
         $this->mapRoutes();
 
