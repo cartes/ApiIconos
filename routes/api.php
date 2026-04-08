@@ -52,10 +52,11 @@ Route::middleware('auth:sanctum')->group(function () {
 // ==========================================
 
 $registrarRutasTenant = function () {
-    // Rutas de invitado dentro del tenant
-    // Nota: /estado NO se incluye aquí porque ya está registrada como ruta central
-    // (sin middleware de tenant) y no requiere contexto de tenant.
-    Route::post('/login', [AuthController::class, 'login']);
+    // Nota: /login y /estado NO se incluyen aquí porque ya están registradas como
+    // rutas centrales (sin middleware de tenant). El AuthController::login consulta
+    // usuarios globalmente (por email, sin scoping de tenant), por lo que NO necesita
+    // contexto de tenant. Incluirlos aquí causaría que el middleware
+    // InitializeTenancyByRequestData explote cuando no se envía header X-Tenant.
 
     // Rutas protegidas dentro del tenant
     Route::middleware('auth:sanctum')->group(function () {
