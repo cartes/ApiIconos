@@ -24,10 +24,23 @@ class TenantRegistrationController extends Controller
     public function register(Request $request): JsonResponse
     {
         $request->validate([
-            'nombre'    => 'required|string|max:255|unique:tenants,nombre',
-            'email'     => 'required|email|max:255|unique:users,email',
-            'password'  => 'nullable|string|min:8',
-            'telefono'  => 'nullable|string|max:20',
+            'nombre'   => [
+                'required',
+                'string',
+                'max:255',
+                // 'nombre' lives in the `data` JSON column (VirtualColumn).
+                // A standard `unique:tenants,nombre` rule queries the column directly and
+                // fails because there is no real `nombre` column in PostgreSQL.
+                // We query via JSON path instead.
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if (Tenant::where('data->nombre', $value)->exists()) {
+                        $fail('El nombre de agencia ya está en uso.');
+                    }
+                },
+            ],
+            'email'    => 'required|email|max:255|unique:users,email',
+            'password' => 'nullable|string|min:8',
+            'telefono' => 'nullable|string|max:20',
         ]);
 
         $password = $request->filled('password')
@@ -80,6 +93,10 @@ class TenantRegistrationController extends Controller
     /**
      * Genera un slug único a partir del nombre de la agencia.
      * Si el slug ya existe, agrega un sufijo numérico incremental.
+     *
+     * Nota: `slug` se almacena en la columna JSON `data` (VirtualColumn),
+     * por lo que se consulta via JSON path para evitar un error de columna
+     * inexistente en PostgreSQL.
      */
     private function generateUniqueSlug(string $nombre): string
     {
@@ -87,7 +104,7 @@ class TenantRegistrationController extends Controller
         $slug = $base;
         $counter = 2;
 
-        while (Tenant::where('slug', $slug)->exists()) {
+        while (Tenant::where('data->slug', $slug)->exists()) {
             $slug = "{$base}-{$counter}";
             $counter++;
         }
