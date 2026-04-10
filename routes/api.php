@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\IconoController;
 use App\Http\Controllers\Api\InvitationController;
 use App\Http\Controllers\Api\PerfilController;
 use App\Http\Controllers\Api\SystemController;
+use App\Http\Controllers\Api\TenantRegistrationController;
 use App\Http\Controllers\Api\UsuarioController;
 use App\Http\Controllers\SuperAdminController;
 use Illuminate\Support\Facades\Route;
@@ -21,6 +22,7 @@ use Stancl\Tenancy\Middleware\InitializeTenancyByPath;
 Route::get('/estado', [SystemController::class, 'verificarEstado']);
 Route::post('/primer-admin', [SystemController::class, 'crearPrimerAdmin']);
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/registrar-agencia', [TenantRegistrationController::class, 'register']);
 
 // ── Invitaciones públicas (sin contexto de tenant) ───────────────────────
 // Deben registrarse ANTES del grupo Route::prefix('{tenant}') para tener
